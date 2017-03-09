@@ -1,0 +1,17 @@
+
+# Index of data columns (starting with zero). ID is the stars's identification
+# number, 'm' an observed magnitude, and 'ra,dec' its observed coordinates.
+#
+#    ID   m    ra   dec
+DC    0   3    11    13
+
+# Name of catalog to query and name of any magnitude in that catalog.
+#
+#    catalog      m
+CA    fp_psc    j_m
+
+
+# Maximum separation in arcsecs
+#
+#    max_arcsec
+MA            5
