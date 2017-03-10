@@ -31,8 +31,8 @@ def reject_outliers(data, m=2.):
 
 def main(
     clust_name, m_cat, catalog, max_arcsec, m_obs, ra_obs, dec_obs, m_qry,
-        ra_qry, dec_qry, m_unq, ra_unq, dec_unq, m_unq_q, N_unq_no_filter,
-        m_match_all, d2d, ra_unq_delta, dec_unq_delta, m_rjct, ra_rjct,
+        ra_qry, dec_qry, m_unq, ra_unq, dec_unq, m_unq_q,
+        d2d, ra_unq_delta, dec_unq_delta, m_rjct, ra_rjct,
         dec_rjct):
     """
     Generate final plots.
@@ -46,7 +46,7 @@ def main(
     ax = plt.subplot(gs[0:4, 0:4])
     plt.xlim(min(ra_obs), max(ra_obs))
     plt.ylim(min(dec_obs), max(dec_obs))
-    ax.set_title("Observed chart ({})".format(len(m_obs)), fontsize=16)
+    ax.set_title("Observed stars ({})".format(len(m_obs)), fontsize=16)
     plt.xlabel(r'$\alpha_{obs}$', fontsize=18)
     plt.ylabel(r'$\delta_{obs}$', fontsize=18)
     ax.minorticks_on()
@@ -80,7 +80,7 @@ def main(
     ax = plt.subplot(gs[0:4, 8:12])
     plt.xlim(min(ra_obs), max(ra_obs))
     plt.ylim(min(dec_obs), max(dec_obs))
-    ax.set_title("Matched chart ({})".format(len(m_unq)), fontsize=16)
+    ax.set_title("Matched stars ({})".format(len(m_unq)), fontsize=16)
     plt.xlabel(r'$\alpha_{obs}$', fontsize=18)
     plt.ylabel(r'$\delta_{obs}$', fontsize=18)
     ax.minorticks_on()
@@ -95,7 +95,8 @@ def main(
     ax = plt.subplot(gs[4:8, 0:4])
     plt.xlim(min(ra_obs), max(ra_obs))
     plt.ylim(min(dec_obs), max(dec_obs))
-    ax.set_title("Stars with no match ({})".format(len(m_rjct)), fontsize=16)
+    ax.set_title("Observed stars with no match ({})".format(len(m_rjct)),
+                 fontsize=16)
     plt.xlabel(r'$\alpha_{obs}$', fontsize=18)
     plt.ylabel(r'$\delta_{obs}$', fontsize=18)
     ax.minorticks_on()
@@ -162,21 +163,20 @@ def main(
     ax.invert_xaxis()
 
     ax = plt.subplot(gs[8:10, 0:4])
-    ax.set_title("Differences between selected magnitudes", fontsize=16)
+    ax.set_title("Differences between matched selected magnitudes",
+                 fontsize=16)
     plt.xlabel(r'$m_{obs}$', fontsize=18)
     plt.ylabel(r'$\Delta\, (m_{{obs}} - $' + '{})'.format(m_cat), fontsize=18)
     ax.minorticks_on()
     ax.grid(b=True, which='major', color='k', linestyle='--', lw=.5,
             zorder=1)
-    plt.scatter(m_obs, m_obs - m_match_all, marker='o', c='grey', s=30,
-                zorder=2)
     plt.scatter(m_unq, m_unq - m_unq_q, marker='o', c='b', s=20, lw=.5,
                 edgecolors='k', zorder=4)
     ax.invert_xaxis()
     ax.invert_yaxis()
 
     ax = plt.subplot(gs[8:10, 4:8])
-    ax.set_title("Distances between matched stars", fontsize=16)
+    ax.set_title("Separation between matched stars", fontsize=16)
     plt.xlabel(r'$d\,(arcsec)$', fontsize=18)
     plt.hist(d2d.arcsec, 50)
     ax.axvline(max_arcsec, color='k', linestyle='--')
@@ -188,17 +188,20 @@ def main(
 
     ax = plt.subplot(gs[8:10, 8:12])
     ax.set_title("Number of stars in different instances", fontsize=16)
-    ax.set_xlim(-0.2, 4.2)
-    ax.minorticks_on()
+    ax.set_xlim(-0.2, 3.2)
     ax.grid(b=True, which='major', color='k', linestyle=':', lw=.5,
             zorder=1)
-    x = np.arange(5)
-    y = np.array(
-        [len(m_obs), len(m_qry), N_unq_no_filter, len(m_unq), len(m_rjct)])
+    x = np.arange(4)
+    y = np.array([len(m_obs), len(m_qry), len(m_unq), len(m_rjct)])
+    up = max(y) * .03
+    ax.set_ylim(0, max(y) + 3 * up)
     ax.bar(x, y, align='center', width=0.2, color='g', zorder=4)
+    for xi, yi, l in zip(*[x, y, list(map(str, y))]):
+        ax.text(xi - len(l) * .02, yi + up, l,
+                bbox=dict(facecolor='w', edgecolor='w', alpha=.5))
     ax.set_xticks(x)
     ax.set_xticklabels(
-        ['Observed', 'Queried', 'Unique match', 'Unique + filter', 'No match'])
+        ['Observed', 'Queried', 'Match', 'No match'])
     ax.tick_params(axis='x', which='major', labelsize=12)
 
     #
