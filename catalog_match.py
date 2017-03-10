@@ -27,7 +27,7 @@ def params_input():
             if not line.startswith("#") and line.strip() != '':
                 reader = line.split()
                 if reader[0] == 'DC':
-                    data_cols = map(int, reader[1:])
+                    data_cols = list(map(int, reader[1:]))
                 if reader[0] == 'CA':
                     catalog = reader[1]
                     m_cat = reader[2]

@@ -40,10 +40,10 @@ def main(
     print('Creating output plots.')
     # figsize(x1, y1), GridSpec(y2, x2) --> To have square plots: x1/x2 =
     # y1/y2 = 2.5
-    fig = plt.figure(figsize=(30, 30))
-    gs = gridspec.GridSpec(12, 12)
+    fig = plt.figure(figsize=(20, 40))
+    gs = gridspec.GridSpec(24, 12)
 
-    ax = plt.subplot(gs[0:4, 0:4])
+    ax = plt.subplot(gs[0:6, 0:6])
     plt.xlim(min(ra_obs), max(ra_obs))
     plt.ylim(min(dec_obs), max(dec_obs))
     ax.set_title("Observed stars ({})".format(len(m_obs)), fontsize=16)
@@ -58,9 +58,9 @@ def main(
     st_sizes_arr = star_size(m_obs, zmin, zmax)
     plt.scatter(ra_obs, dec_obs, marker='o', c='k', s=st_sizes_arr, zorder=4)
     ax.invert_xaxis()
-    ax.set_aspect('equal')
+    # ax.set_aspect('equal')
 
-    ax = plt.subplot(gs[0:4, 4:8])
+    ax = plt.subplot(gs[0:6, 6:12])
     plt.xlim(min(ra_obs), max(ra_obs))
     plt.ylim(min(dec_obs), max(dec_obs))
     ax.set_title(
@@ -75,24 +75,9 @@ def main(
     plt.scatter(ra_qry, dec_qry, marker='o', c='k', s=st_sizes_arr,
                 zorder=4)
     ax.invert_xaxis()
-    ax.set_aspect('equal')
+    # ax.set_aspect('equal')
 
-    ax = plt.subplot(gs[0:4, 8:12])
-    plt.xlim(min(ra_obs), max(ra_obs))
-    plt.ylim(min(dec_obs), max(dec_obs))
-    ax.set_title("Matched stars ({})".format(len(m_unq)), fontsize=16)
-    plt.xlabel(r'$\alpha_{obs}$', fontsize=18)
-    plt.ylabel(r'$\delta_{obs}$', fontsize=18)
-    ax.minorticks_on()
-    ax.grid(b=True, which='major', color='gray', linestyle='-', lw=.5,
-            zorder=1)
-    zmin, zmax = interval.get_limits(np.array(m_obs))
-    st_sizes_arr = star_size(m_unq, zmin, zmax)
-    plt.scatter(ra_unq, dec_unq, marker='o', c='k', s=st_sizes_arr, zorder=4)
-    ax.invert_xaxis()
-    ax.set_aspect('equal')
-
-    ax = plt.subplot(gs[4:8, 0:4])
+    ax = plt.subplot(gs[6:12, 0:6])
     plt.xlim(min(ra_obs), max(ra_obs))
     plt.ylim(min(dec_obs), max(dec_obs))
     ax.set_title("Observed stars with no match ({})".format(len(m_rjct)),
@@ -106,10 +91,25 @@ def main(
     st_sizes_arr = star_size(m_rjct, zmin, zmax)
     plt.scatter(ra_rjct, dec_rjct, marker='o', c='k', s=st_sizes_arr, zorder=4)
     ax.invert_xaxis()
-    ax.set_aspect('equal')
+    # ax.set_aspect('equal')
+
+    ax = plt.subplot(gs[6:12, 6:12])
+    plt.xlim(min(ra_obs), max(ra_obs))
+    plt.ylim(min(dec_obs), max(dec_obs))
+    ax.set_title("Matched stars ({})".format(len(m_unq)), fontsize=16)
+    plt.xlabel(r'$\alpha_{obs}$', fontsize=18)
+    plt.ylabel(r'$\delta_{obs}$', fontsize=18)
+    ax.minorticks_on()
+    ax.grid(b=True, which='major', color='gray', linestyle='-', lw=.5,
+            zorder=1)
+    zmin, zmax = interval.get_limits(np.array(m_obs))
+    st_sizes_arr = star_size(m_unq, zmin, zmax)
+    plt.scatter(ra_unq, dec_unq, marker='o', c='k', s=st_sizes_arr, zorder=4)
+    ax.invert_xaxis()
+    # ax.set_aspect('equal')
 
     # Plot density map.
-    ax = plt.subplot(gs[4:8, 4:8])
+    ax = plt.subplot(gs[12:18, 0:6])
     ax.set_title("Difference between observed and queried " + r"$\alpha$",
                  fontsize=16)
     plt.xlabel(r'$\alpha_{obs}$', fontsize=18)
@@ -127,7 +127,7 @@ def main(
     im = plt.imshow(
         zi, vmin=zi.min(), vmax=zi.max(), origin='lower',
         extent=[ra_unq.min(), ra_unq.max(), dec_unq.min(), dec_unq.max()],
-        cmap=cmap)
+        cmap=cmap, aspect='auto')
     # Colorbar
     divider = make_axes_locatable(ax)
     cax = divider.append_axes("right", size="2%", pad=0.05)
@@ -136,7 +136,7 @@ def main(
     ax.invert_xaxis()
 
     # Plot density map.
-    ax = plt.subplot(gs[4:8, 8:12])
+    ax = plt.subplot(gs[12:18, 6:12])
     ax.set_title("Difference between observed and queried " + r"$\delta$",
                  fontsize=16)
     plt.xlabel(r'$\alpha_{obs}$', fontsize=18)
@@ -154,7 +154,7 @@ def main(
     im = plt.imshow(
         zi, vmin=zi.min(), vmax=zi.max(), origin='lower',
         extent=[ra_unq.min(), ra_unq.max(), dec_unq.min(), dec_unq.max()],
-        cmap=cmap)
+        cmap=cmap, aspect='auto')
     # Colorbar
     divider = make_axes_locatable(ax)
     cax = divider.append_axes("right", size="2%", pad=0.05)
@@ -162,20 +162,7 @@ def main(
     cbar.set_label(r'$\Delta\,\delta\,(arcsec)$', fontsize=12)
     ax.invert_xaxis()
 
-    ax = plt.subplot(gs[8:10, 0:4])
-    ax.set_title("Differences between matched selected magnitudes",
-                 fontsize=16)
-    plt.xlabel(r'$m_{obs}$', fontsize=18)
-    plt.ylabel(r'$\Delta\, (m_{{obs}} - $' + '{})'.format(m_cat), fontsize=18)
-    ax.minorticks_on()
-    ax.grid(b=True, which='major', color='k', linestyle='--', lw=.5,
-            zorder=1)
-    plt.scatter(m_unq, m_unq - m_unq_q, marker='o', c='b', s=20, lw=.5,
-                edgecolors='k', zorder=4)
-    ax.invert_xaxis()
-    ax.invert_yaxis()
-
-    ax = plt.subplot(gs[8:10, 4:8])
+    ax = plt.subplot(gs[18:21, 0:6])
     ax.set_title("Separation between matched stars", fontsize=16)
     plt.xlabel(r'$d\,(arcsec)$', fontsize=18)
     plt.hist(d2d.arcsec, 50)
@@ -186,7 +173,7 @@ def main(
     ob.patch.set(alpha=0.85)
     ax.add_artist(ob)
 
-    ax = plt.subplot(gs[8:10, 8:12])
+    ax = plt.subplot(gs[18:21, 6:12])
     ax.set_title("Number of stars in different instances", fontsize=16)
     ax.set_xlim(-0.2, 3.2)
     ax.grid(b=True, which='major', color='k', linestyle=':', lw=.5,
@@ -203,6 +190,19 @@ def main(
     ax.set_xticklabels(
         ['Observed', 'Queried', 'Match', 'No match'])
     ax.tick_params(axis='x', which='major', labelsize=12)
+
+    ax = plt.subplot(gs[21:24, 0:6])
+    ax.set_title("Differences between matched selected magnitudes",
+                 fontsize=16)
+    plt.xlabel(r'$m_{obs}$', fontsize=18)
+    plt.ylabel(r'$\Delta\, (m_{{obs}} - $' + '{})'.format(m_cat), fontsize=18)
+    ax.minorticks_on()
+    ax.grid(b=True, which='major', color='k', linestyle='--', lw=.5,
+            zorder=1)
+    plt.scatter(m_unq, m_unq - m_unq_q, marker='o', c='b', s=20, lw=.5,
+                edgecolors='k', zorder=4)
+    ax.invert_xaxis()
+    ax.invert_yaxis()
 
     #
     fig.tight_layout()
