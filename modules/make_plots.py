@@ -32,8 +32,8 @@ def reject_outliers(data, m=2.):
 def main(
     clust_name, m_cat, catalog, max_arcsec, m_obs, ra_obs, dec_obs, m_qry,
         ra_qry, dec_qry, m_unq, ra_unq, dec_unq, m_unq_q,
-        d2d, ra_unq_delta, dec_unq_delta, m_rjct, ra_rjct,
-        dec_rjct):
+        match_d2d_all, no_match_d2d_all, ra_unq_delta, dec_unq_delta, m_rjct,
+        ra_rjct, dec_rjct):
     """
     Generate final plots.
     """
@@ -46,7 +46,7 @@ def main(
     ax = plt.subplot(gs[0:6, 0:6])
     plt.xlim(min(ra_obs), max(ra_obs))
     plt.ylim(min(dec_obs), max(dec_obs))
-    ax.set_title("Observed stars ({})".format(len(m_obs)), fontsize=16)
+    ax.set_title("Observed stars ({})".format(len(m_obs)), fontsize=14)
     plt.xlabel(r'$\alpha_{obs}$', fontsize=18)
     plt.ylabel(r'$\delta_{obs}$', fontsize=18)
     ax.minorticks_on()
@@ -64,7 +64,7 @@ def main(
     plt.xlim(min(ra_obs), max(ra_obs))
     plt.ylim(min(dec_obs), max(dec_obs))
     ax.set_title(
-        "Queried catalog {} ({})".format(catalog, len(m_qry)), fontsize=16)
+        "Queried catalog {} ({})".format(catalog, len(m_qry)), fontsize=14)
     plt.xlabel(r'$\alpha_{queried}$', fontsize=18)
     plt.ylabel(r'$\delta_{queried}$', fontsize=18)
     ax.minorticks_on()
@@ -81,7 +81,7 @@ def main(
     plt.xlim(min(ra_obs), max(ra_obs))
     plt.ylim(min(dec_obs), max(dec_obs))
     ax.set_title("Observed stars with no match ({})".format(len(m_rjct)),
-                 fontsize=16)
+                 fontsize=14)
     plt.xlabel(r'$\alpha_{obs}$', fontsize=18)
     plt.ylabel(r'$\delta_{obs}$', fontsize=18)
     ax.minorticks_on()
@@ -96,7 +96,7 @@ def main(
     ax = plt.subplot(gs[6:12, 6:12])
     plt.xlim(min(ra_obs), max(ra_obs))
     plt.ylim(min(dec_obs), max(dec_obs))
-    ax.set_title("Matched stars ({})".format(len(m_unq)), fontsize=16)
+    ax.set_title("Matched stars ({})".format(len(m_unq)), fontsize=14)
     plt.xlabel(r'$\alpha_{obs}$', fontsize=18)
     plt.ylabel(r'$\delta_{obs}$', fontsize=18)
     ax.minorticks_on()
@@ -111,7 +111,7 @@ def main(
     # Plot density map.
     ax = plt.subplot(gs[12:18, 0:6])
     ax.set_title("Difference between observed and queried " + r"$\alpha$",
-                 fontsize=16)
+                 fontsize=14)
     plt.xlabel(r'$\alpha_{obs}$', fontsize=18)
     plt.ylabel(r'$\delta_{obs}$', fontsize=18)
     xi, yi = np.linspace(ra_unq.min(), ra_unq.max(), 50),\
@@ -138,7 +138,7 @@ def main(
     # Plot density map.
     ax = plt.subplot(gs[12:18, 6:12])
     ax.set_title("Difference between observed and queried " + r"$\delta$",
-                 fontsize=16)
+                 fontsize=14)
     plt.xlabel(r'$\alpha_{obs}$', fontsize=18)
     plt.ylabel(r'$\delta_{obs}$', fontsize=18)
     xi, yi = np.linspace(ra_unq.min(), ra_unq.max(), 50),\
@@ -163,18 +163,20 @@ def main(
     ax.invert_xaxis()
 
     ax = plt.subplot(gs[18:21, 0:6])
-    ax.set_title("Separation between matched stars", fontsize=16)
+    ax.set_title("Separation between stars", fontsize=14)
     plt.xlabel(r'$d\,(arcsec)$', fontsize=18)
-    plt.hist(d2d.arcsec, 50)
+    ax.hist(match_d2d_all.arcsec, color='green', alpha=0.5,
+            label='Match ({})'.format(len(match_d2d_all)))
+    ax.hist(no_match_d2d_all.arcsec, color='red', alpha=0.5,
+            label='No match ({})'.format(len(no_match_d2d_all)))
     ax.axvline(max_arcsec, color='k', linestyle='--')
-    text = 'N = {}'.format(len(d2d)) + '\n' +\
-        'N(<{}) = {}'.format(max_arcsec, len(m_unq))
-    ob = offsetbox.AnchoredText(text, loc=1, prop=dict(size=14))
-    ob.patch.set(alpha=0.85)
-    ax.add_artist(ob)
+    # Legend
+    handles, labels = ax.get_legend_handles_labels()
+    leg = ax.legend(handles, labels, loc='upper right')
+    leg.get_frame().set_alpha(0.5)
 
     ax = plt.subplot(gs[18:21, 6:12])
-    ax.set_title("Number of stars in different instances", fontsize=16)
+    ax.set_title("Number of stars in different instances", fontsize=14)
     ax.set_xlim(-0.2, 3.2)
     ax.grid(b=True, which='major', color='k', linestyle=':', lw=.5,
             zorder=1)
@@ -193,7 +195,7 @@ def main(
 
     ax = plt.subplot(gs[21:24, 0:6])
     ax.set_title("Differences between matched selected magnitudes",
-                 fontsize=16)
+                 fontsize=14)
     plt.xlabel(r'$m_{obs}$', fontsize=18)
     plt.ylabel(r'$\Delta\, (m_{{obs}} - $' + '{})'.format(m_cat), fontsize=18)
     ax.minorticks_on()
