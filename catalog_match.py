@@ -156,6 +156,11 @@ def main():
         # Get input data from file.
         ids, m_obs, ra_obs, dec_obs = read_input.main(clust_file, data_cols)
 
+        if len(ids) != len(set(ids)):
+            print("ERROR: IDs in {} catalog are not unique.\n".format(
+                clust_name))
+            continue
+
         # Query catalog.
         query, m_qry, ra_qry, dec_qry = cat_query(
             ids, ra_obs, dec_obs, catalog, m_cat)
