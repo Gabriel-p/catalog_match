@@ -248,7 +248,8 @@ def main():
 
         out_data.main(
             clust_name, query, id_unq, ra_unq, dec_unq, match_c2_ids_all,
-            id_rjct, m_rjct, ra_rjct, dec_rjct)
+            match_d2d_all, id_rjct, m_rjct, ra_rjct, dec_rjct,
+            no_match_d2d_all)
 
     print("End.")
 
