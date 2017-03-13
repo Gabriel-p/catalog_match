@@ -1,14 +1,13 @@
 
-# Data columns input. ID is the stars's identification number, 'm_obs' is an
-# observed magnitude, and 'ra, dec' its observed coordinates. Accepted
-# read modes are:
+# Data columns input: 'm_obs' is an observed magnitude, and 'ra, dec' its
+# observed coordinates. Accepted read modes are:
 #
 # * mode
 #   num: give indexes of data columns starting at zero.
 #   nam: give names of the columns as stored in the input file.
 #
-#   mode   ID   m_obs    ra   dec
-DC   num    0       3     4     5
+#   mode   m_obs    ra   dec
+DC   num       3     4     5
 
 
 # Select the mode. If 'mode' is 'query' the 'cat_name' element stores the

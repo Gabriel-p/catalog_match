@@ -141,13 +141,8 @@ def main():
         print("\nProcessing: {}\n".format(clust_name))
 
         # Get input data from file.
-        ids, m_obs, ra_obs, dec_obs, N_obs, ra_mid, dec_mid, ra_rang,\
+        m_obs, ra_obs, dec_obs, N_obs, ra_mid, dec_mid, ra_rang,\
             dec_rang = read_input.in_data(clust_file, data_mode, data_cols)
-
-        if len(ids) != len(set(ids)):
-            print("ERROR: IDs in {} catalog are not unique.\n".format(
-                clust_name))
-            continue
 
         # Query catalog.
         query = read_input.cat_query(
@@ -155,7 +150,7 @@ def main():
             catalog, m_cat)
 
         # Initial full list of observed and queried catalogs.
-        c1_ids = [_ for _ in range(len(ids))]
+        c1_ids = [_ for _ in range(len(ra_obs))]
         c2_ids = [_ for _ in range(len(query))]
         ra_q, dec_q = query['ra'][c2_ids], query['dec'][c2_ids]
         # Store all unique matches, and observed stars with no match.

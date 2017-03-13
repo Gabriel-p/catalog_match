@@ -14,16 +14,14 @@ def in_data(clust_file, data_mode, data_cols):
     data = ascii.read(clust_file, fill_values=[(ascii.masked, '99.999')])
 
     if data_mode == 'num':
-        id_idx, m_idx, ra_idx, dec_idx = map(int, data_cols)
-        ids, m_obs, ra_obs, dec_obs = data.columns[id_idx],\
-            data.columns[m_idx], data.columns[ra_idx],\
+        m_idx, ra_idx, dec_idx = map(int, data_cols)
+        m_obs, ra_obs, dec_obs = data.columns[m_idx], data.columns[ra_idx],\
             data.columns[dec_idx]
     elif data_mode == 'nam':
-        id_nam, m_nam, ra_nam, dec_nam = data_cols
-        ids, m_obs, ra_obs, dec_obs = data[id_nam], data[m_nam], data[ra_nam],\
-            data[dec_nam]
+        m_nam, ra_nam, dec_nam = data_cols
+        m_obs, ra_obs, dec_obs = data[m_nam], data[ra_nam], data[dec_nam]
 
-    N_obs = len(ids)
+    N_obs = len(ra_obs)
     print("N (all stars) = {}".format(N_obs))
 
     ra_rang, dec_rang = max(ra_obs) - min(ra_obs),\
@@ -36,8 +34,7 @@ def in_data(clust_file, data_mode, data_cols):
     print('Range (ra, dec):', ra_rang, dec_rang)
     print('Centre (ra, dec):', ra_mid, dec_mid)
 
-    return ids, m_obs, ra_obs, dec_obs, N_obs, ra_mid, dec_mid, ra_rang,\
-        dec_rang
+    return m_obs, ra_obs, dec_obs, N_obs, ra_mid, dec_mid, ra_rang, dec_rang
 
 
 def cat_query(clust_name, N_obs, ra_mid, dec_mid, ra_rang, dec_rang, cat_mode,
