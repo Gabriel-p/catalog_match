@@ -15,7 +15,7 @@ def main(
     ascii.write(
         query, output=f_out, overwrite=True, format='fixed_width',
         delimiter=' ', fill_values=[(ascii.masked, '--')],
-        formats={'ra': '%4.9f', 'dec': '%4.9f'})
+        formats={'ra': '%.6f', 'dec': '%.6f'})
 
     # Read input data.
     in_data = ascii.read(
@@ -46,7 +46,7 @@ def main(
         ascii.write(
             comb_dat, output=f_match, overwrite=True, format='fixed_width',
             delimiter=' ', fill_values=[(ascii.masked, '--')],
-            formats={'d_arcsec': '%.5f'})
+            formats={'d_arcsec': '%.4f', 'ra': '%.6f', 'dec': '%.6f'})
         print("Data for all matched stars written to file.")
 
     elif out_format == 'man':
@@ -60,7 +60,8 @@ def main(
         ascii.write(
             in_data_match, output=f_match, overwrite=True,
             format='fixed_width', delimiter=' ',
-            fill_values=[(ascii.masked, '--')], formats={'d_arcsec': '%.5f'})
+            fill_values=[(ascii.masked, '--')],
+            formats={'d_arcsec': '%.4f', 'ra': '%.6f', 'dec': '%.6f'})
 
         print("Data for all matched stars written to file.")
 
@@ -68,5 +69,5 @@ def main(
     ascii.write(
         in_data_no_match, output=f_no_match, overwrite=True,
         format='fixed_width', delimiter=' ',
-        fill_values=[(ascii.masked, '--')], formats={'d_arcsec': '%.5f'})
+        fill_values=[(ascii.masked, '--')], formats={'d_arcsec': '%.4f'})
     print("Data for stars with no match written to file.")
