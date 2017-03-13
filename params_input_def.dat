@@ -1,17 +1,47 @@
 
-# Index of data columns (starting with zero). ID is the stars's identification
-# number, 'm' an observed magnitude, and 'ra,dec' its observed coordinates.
+# Data columns input. ID is the stars's identification number, 'm_obs' is an
+# observed magnitude, and 'ra, dec' its observed coordinates. Accepted
+# read modes are:
 #
-#    ID   m    ra   dec
-DC    0   3    11    13
-
-# Name of catalog to query and name of any magnitude in that catalog.
+# * mode
+#   num: give indexes of data columns starting at zero.
+#   nam: give names of the columns as stored in the input file.
 #
-#    catalog      m
-CA    fp_psc    j_m
+#   mode   ID   m_obs    ra   dec
+DC   num    0       3     4     5
 
 
-# Maximum separation in arcsecs
+# Select the mode. If 'mode' is 'query' the 'cat_name' element stores the
+# name of catalog to query. The 'm_qry' element is any magnitude in that
+# catalog.
+#
+# * mode
+#   query: download 'cat_name' catalog.
+#   read: read stored catalog. Name must follow format 'cname_query.dat',
+#         where 'cname' is the name of the input data file (no extension).
+#
+#   mode    cat_name    m_qry
+CA  query     fp_psc      j_m
+
+
+# Maximum separation in arcsecs.
 #
 #    max_arcsec
-MA            5
+MA           10
+
+
+# Create output figure?
+#
+#     y/n
+FI      y
+
+
+# Output format.
+#
+# * mode
+#   all: write all data available in queried catalog.
+#   man: manually select which columns will be written, using the 'col_names'
+#        parameter. Write the name of each column separated by spaces.
+#
+#   mode  col_names
+OF   all        j_m

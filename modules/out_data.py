@@ -1,45 +1,72 @@
 
 from astropy.io import ascii
 from astropy.table import Column
+from astropy.table import hstack
 
 
 def main(
-        clust_name, query, id_unq, ra_unq, dec_unq, match_c2_ids_all,
-        match_d2d_all, id_rjct, m_rjct, ra_rjct, dec_rjct, no_match_d2d_all):
+        clust_name, clust_file, out_format, out_cols, query, match_c1_ids_all,
+        match_c2_ids_all, match_d2d_all, no_match_c1_all, no_match_d2d_all):
     """
+    Write output data to files.
     """
+    # Store full queried catalog.
+    f_out = 'output/' + clust_name + '_query.dat'
+    ascii.write(
+        query, output=f_out, overwrite=True, format='fixed_width',
+        delimiter=' ', fill_values=[(ascii.masked, '--')],
+        formats={'ra': '%4.9f', 'dec': '%4.9f'})
+
+    # Read input data.
+    in_data = ascii.read(
+        clust_file, fill_values=[(ascii.masked, '99.999')])
+
+    # Filter matched observed stars only.
+    in_data_match = in_data[match_c1_ids_all]
+    # Generate column with separation data and add it to the table.
+    d2d_match = Column(match_d2d_all.arcsec, name='d_arcsec')
+    in_data_match.add_column(d2d_match)
     # Define table using only matched stars from queried catalog.
     t_match_c2 = query[match_c2_ids_all]
-    # Add columns with observed data.
-    obs_ids = Column(id_unq, name='IDs_Obs')
-    ra_obs = Column(ra_unq, name='ra_Obs')
-    dec_obs = Column(dec_unq, name='dec_Obs')
-    d2d_match = Column(match_d2d_all.arcsec, name='d_arcsec')
-    # Insert before the first table column
-    t_match_c2.add_column(obs_ids, index=0)
-    t_match_c2.add_column(ra_obs, index=1)
-    t_match_c2.add_column(dec_obs, index=2)
-    t_match_c2.add_column(d2d_match, index=3)
 
-    # Write matched stars to file.
-    f_out = 'output/' + clust_name + '_match.dat'
+    # Filter *not* matched observed stars only.
+    in_data_no_match = in_data[no_match_c1_all]
+    # Generate column with separation data and add it to the table.
+    d2d_no_match = Column(no_match_d2d_all.arcsec, name='d_arcsec')
+    in_data_no_match.add_column(d2d_no_match)
+
+    # Output data file name for matched and not matched stars.
+    f_match = 'output/' + clust_name + '_match.dat'
+    f_no_match = 'output/' + clust_name + '_no_match.dat'
+
+    if out_format == 'all':
+        # Write matched stars to file.
+        # Combine input data with queried data for matched stars.
+        comb_dat = hstack([in_data_match, t_match_c2])
+        ascii.write(
+            comb_dat, output=f_match, overwrite=True, format='fixed_width',
+            delimiter=' ', fill_values=[(ascii.masked, '--')],
+            formats={'d_arcsec': '%.5f'})
+        print("Data for all matched stars written to file.")
+
+    elif out_format == 'man':
+        in_data_match.add_column(t_match_c2['ra'])
+        in_data_match.add_column(t_match_c2['dec'])
+        # Add selected columns.
+        for col in out_cols:
+            in_data_match.add_column(t_match_c2[col])
+
+        # Write matched stars to file.
+        ascii.write(
+            in_data_match, output=f_match, overwrite=True,
+            format='fixed_width', delimiter=' ',
+            fill_values=[(ascii.masked, '--')], formats={'d_arcsec': '%.5f'})
+
+        print("Data for all matched stars written to file.")
+
+    # Write *not* matched stars to file.
     ascii.write(
-        t_match_c2, output=f_out, overwrite=True, format='fixed_width',
-        delimiter=' ', fill_values=[(ascii.masked, '--')],
-        formats={'d_arcsec': '%.5f'})
-
-    print("Data for all matched stars written to file.")
-
-    # Write not matched stars to file.
-    f_name = 'output/' + clust_name + '_no_match.dat'
-    with open(f_name, 'w') as f_out:
-        f_out.write("#ID          mag     ra_obs    dec_obs   d_arcsec\n")
-    with open(f_name, "a") as f_out:
-        for line_f in zip(*[
-                map(int, id_rjct), m_rjct, ra_rjct, dec_rjct,
-                no_match_d2d_all.arcsec]):
-            f_out.write('''{:<10}{:>6} {:>10.5f} {:>10.5f} {:>10.5f}'''.format(
-                *line_f))
-            f_out.write('\n')
-
+        in_data_no_match, output=f_no_match, overwrite=True,
+        format='fixed_width', delimiter=' ',
+        fill_values=[(ascii.masked, '--')], formats={'d_arcsec': '%.5f'})
     print("Data for stars with no match written to file.")

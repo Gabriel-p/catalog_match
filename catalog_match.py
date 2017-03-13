@@ -5,7 +5,6 @@ from os import listdir
 from os.path import isfile, join
 import numpy as np
 
-from astroquery.irsa import Irsa
 from astropy.coordinates import Angle
 from astropy import units as u
 from astropy.coordinates import SkyCoord
@@ -19,7 +18,7 @@ from modules import out_data
 
 def params_input():
     """
-    Read data from file.
+    Read input parameters from 'params_input.dat' file.
     """
     with open('params_input.dat', "r") as f_dat:
         # Iterate through each line in the file.
@@ -27,14 +26,22 @@ def params_input():
             if not line.startswith("#") and line.strip() != '':
                 reader = line.split()
                 if reader[0] == 'DC':
-                    data_cols = list(map(int, reader[1:]))
+                    data_mode = reader[1]
+                    data_cols = reader[2:]
                 if reader[0] == 'CA':
-                    catalog = reader[1]
-                    m_cat = reader[2]
+                    cat_mode = reader[1]
+                    catalog = reader[2]
+                    m_cat = reader[3]
                 if reader[0] == 'MA':
                     max_arcsec = float(reader[1])
+                if reader[0] == 'FI':
+                    out_fig = reader[1]
+                if reader[0] == 'OF':
+                    out_format = reader[1]
+                    out_cols = reader[2:]
 
-    return data_cols, catalog, m_cat, max_arcsec
+    return data_mode, data_cols, cat_mode, catalog, m_cat, max_arcsec,\
+        out_fig, out_format, out_cols
 
 
 def get_files():
@@ -47,34 +54,12 @@ def get_files():
 
     # Remove readme file it is still there.
     cl_files.remove('input/README.md')
+    # Remove any '_query.dat' file.
+    for _ in cl_files:
+        if _.endswith('_query.dat'):
+            cl_files.remove(_)
 
     return cl_files
-
-
-def cat_query(ids, ra_obs, dec_obs, catalog, m_cat):
-    """
-    """
-    ra_rang, dec_rang = max(ra_obs) - min(ra_obs),\
-        max(dec_obs) - min(dec_obs)
-    ra_mid, dec_mid = .5 * (min(ra_obs) + max(ra_obs)),\
-        .5 * (max(dec_obs) + min(dec_obs))
-
-    print('ra (min, max):', min(ra_obs), max(ra_obs))
-    print('dec (min, max):', min(dec_obs), max(dec_obs))
-    print('Range (ra, dec):', ra_rang, dec_rang)
-    print('Centre (ra, dec):', ra_mid, dec_mid)
-
-    cent = SkyCoord(ra=ra_mid * u.degree, dec=dec_mid * u.degree, frame='icrs')
-
-    # Set maximum limit for retrieved stars.
-    Irsa.ROW_LIMIT = int(4 * len(ids))
-    query = Irsa.query_region(
-        cent, catalog=catalog, spatial='Box', width=dec_rang * u.deg)
-    print("N (queried catalog):", len(query))
-
-    m_qry, ra_qry, dec_qry = query[m_cat], query['ra'], query['dec']
-
-    return query, m_qry, ra_qry, dec_qry
 
 
 def cat_match(ra_obs, dec_obs, ra_qry, dec_qry):
@@ -86,7 +71,7 @@ def cat_match(ra_obs, dec_obs, ra_qry, dec_qry):
     d3d are the 3-dimensional distances
     """
     # Define observed and queried catalogs.
-    c1 = SkyCoord(ra=ra_obs * u.degree, dec=dec_obs * u.degree)
+    c1 = SkyCoord(ra_obs, dec_obs, unit=(u.degree, u.degree))
     c2 = SkyCoord(ra_qry, dec_qry, unit=(u.degree, u.degree))
 
     idx, d2d, d3d = c1.match_to_catalog_sky(c2)
@@ -140,11 +125,13 @@ def match_filter(c1_ids, c2_ids, d2d, max_arcsec):
 
 def main():
     """
-    Observed catalog matcher.
-    """
-    # Irsa.print_catalogs()
+    Observed catalog matcher. To obtain list of supported catalogs:
 
-    data_cols, catalog, m_cat, max_arcsec = params_input()
+    Irsa.print_catalogs()
+    """
+
+    data_mode, data_cols, cat_mode, catalog, m_cat, max_arcsec, out_fig,\
+        out_format, out_cols = params_input()
 
     # Process all files inside 'input/' folder.
     cl_files = get_files()
@@ -154,7 +141,8 @@ def main():
         print("\nProcessing: {}\n".format(clust_name))
 
         # Get input data from file.
-        ids, m_obs, ra_obs, dec_obs = read_input.main(clust_file, data_cols)
+        ids, m_obs, ra_obs, dec_obs, N_obs, ra_mid, dec_mid, ra_rang,\
+            dec_rang = read_input.in_data(clust_file, data_mode, data_cols)
 
         if len(ids) != len(set(ids)):
             print("ERROR: IDs in {} catalog are not unique.\n".format(
@@ -162,8 +150,9 @@ def main():
             continue
 
         # Query catalog.
-        query, m_qry, ra_qry, dec_qry = cat_query(
-            ids, ra_obs, dec_obs, catalog, m_cat)
+        query = read_input.cat_query(
+            clust_name, N_obs, ra_mid, dec_mid, ra_rang, dec_rang, cat_mode,
+            catalog, m_cat)
 
         # Initial full list of observed and queried catalogs.
         c1_ids = [_ for _ in range(len(ids))]
@@ -215,40 +204,44 @@ def main():
                         ra_q.append(query['ra'][c2_i])
                         dec_q.append(query['dec'][c2_i])
 
+        print('Total stars matched:', len(match_c1_ids_all))
+        print('Total stars not matched:', len(no_match_c1_all))
+
         # Unique stars from observed catalog.
-        id_unq, m_unq, ra_unq, dec_unq =\
-            list(map(int, ids[match_c1_ids_all])),\
+        m_unq, ra_unq, dec_unq =\
             m_obs[match_c1_ids_all], ra_obs[match_c1_ids_all],\
             dec_obs[match_c1_ids_all]
-
-        print('Total stars matched:', len(m_unq))
-        # Unique magnitudes from queried catalog.
-        m_unq_q = m_qry[match_c2_ids_all]
-        # Differences in matched coordinates.
-        ra_unq_delta, dec_unq_delta =\
-            Angle(ra_unq - ra_qry[match_c2_ids_all], unit='deg').arcsec,\
-            Angle(dec_unq - dec_qry[match_c2_ids_all], unit='deg').arcsec
-        # Observed stars with no match.
-        id_rjct, m_rjct, ra_rjct, dec_rjct = ids[no_match_c1_all],\
-            m_obs[no_match_c1_all], ra_obs[no_match_c1_all],\
-            dec_obs[no_match_c1_all]
-        print('Total stars not matched:', len(m_rjct))
 
         # Generate output dir if it doesn't exist.
         if not exists('output'):
             makedirs('output')
 
+        # Store match and no match separations as 'Angle' objects.
         match_d2d_all, no_match_d2d_all = Angle(match_d2d_all * u.degree),\
             Angle(no_match_d2d_all * u.degree)
-        make_plots.main(
-            clust_name, m_cat, catalog, max_arcsec, m_obs, ra_obs, dec_obs,
-            m_qry, ra_qry, dec_qry, m_unq, ra_unq, dec_unq, m_unq_q,
-            match_d2d_all, no_match_d2d_all, ra_unq_delta,
-            dec_unq_delta, m_rjct, ra_rjct, dec_rjct)
+
+        if out_fig == 'y':
+            m_qry, ra_qry, dec_qry = query[m_cat], query['ra'], query['dec']
+            # Unique magnitudes from queried catalog.
+            m_unq_q = m_qry[match_c2_ids_all]
+            # Differences in matched coordinates.
+            ra_unq_delta, dec_unq_delta =\
+                Angle(ra_unq - ra_qry[match_c2_ids_all], unit='deg').arcsec,\
+                Angle(dec_unq - dec_qry[match_c2_ids_all], unit='deg').arcsec
+            # Observed stars with no match.
+            m_rjct, ra_rjct, dec_rjct = m_obs[no_match_c1_all],\
+                ra_obs[no_match_c1_all], dec_obs[no_match_c1_all]
+            make_plots.main(
+                clust_name, m_cat, catalog, max_arcsec, m_obs, ra_obs, dec_obs,
+                m_qry, ra_qry, dec_qry, m_unq, ra_unq, dec_unq, m_unq_q,
+                match_d2d_all, no_match_d2d_all, ra_unq_delta,
+                dec_unq_delta, m_rjct, ra_rjct, dec_rjct)
+        else:
+            print("No output figure created.")
 
         out_data.main(
-            clust_name, query, id_unq, ra_unq, dec_unq, match_c2_ids_all,
-            match_d2d_all, id_rjct, m_rjct, ra_rjct, dec_rjct,
+            clust_name, clust_file, out_format, out_cols, query,
+            match_c1_ids_all, match_c2_ids_all, match_d2d_all, no_match_c1_all,
             no_match_d2d_all)
 
     print("End.")
