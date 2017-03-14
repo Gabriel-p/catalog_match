@@ -55,6 +55,7 @@ def cat_query(clust_name, N_obs, ra_mid, dec_mid, ra_rang, dec_rang, cat_mode,
         txt = 'read'
         q_file = 'input/' + clust_name + '_query.dat'
         query = ascii.read(q_file)
+        # TODO these two lines below are almost certainly not needed.
         query['ra'] = query['ra'] * u.deg
         query['dec'] = query['dec'] * u.deg
 
