@@ -19,8 +19,8 @@ DC   num       3     4     5
 #   read: read stored catalog. Name must follow format 'cname_query.dat',
 #         where 'cname' is the name of the input data file (no extension).
 #
-#   mode    cat_name    m_qry
-CA  query     fp_psc      j_m
+#   mode    cat_name    m_qry   ra_qry    de_qry
+CA  query     fp_psc      j_m   RAJ2000   DEJ2000
 
 
 # Maximum separation in arcsecs.

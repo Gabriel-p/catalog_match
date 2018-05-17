@@ -31,7 +31,9 @@ def params_input():
                 if reader[0] == 'CA':
                     cat_mode = reader[1]
                     catalog = reader[2]
-                    m_cat = reader[3]
+                    m_qry = reader[3]
+                    ra_qry = reader[4]
+                    de_qry = reader[5]
                 if reader[0] == 'MA':
                     max_arcsec = float(reader[1])
                 if reader[0] == 'FI':
@@ -40,8 +42,8 @@ def params_input():
                     out_format = reader[1]
                     out_cols = reader[2:]
 
-    return data_mode, data_cols, cat_mode, catalog, m_cat, max_arcsec,\
-        out_fig, out_format, out_cols
+    return data_mode, data_cols, cat_mode, catalog, m_qry, ra_qry, de_qry,\
+        max_arcsec, out_fig, out_format, out_cols
 
 
 def get_files():
@@ -119,8 +121,8 @@ def match_filter(c1_ids, c2_ids, d2d, max_arcsec):
             no_match_c1.append(c1_i)
             no_match_d2d.append(d)
 
-    return match_c1_ids, match_c2_ids, no_match_c1, dupl_c1_ids, match_d2d,\
-        no_match_d2d
+    return match_c1_ids, match_c2_ids, no_match_c1, np.array(dupl_c1_ids),\
+        match_d2d, no_match_d2d
 
 
 def main():
@@ -130,8 +132,8 @@ def main():
     Irsa.print_catalogs()
     """
 
-    data_mode, data_cols, cat_mode, catalog, m_cat, max_arcsec, out_fig,\
-        out_format, out_cols = params_input()
+    data_mode, data_cols, cat_mode, catalog, m_qry, ra_qry, de_qry,\
+        max_arcsec, out_fig, out_format, out_cols = params_input()
 
     # Process all files inside 'input/' folder.
     cl_files = get_files()
@@ -141,27 +143,27 @@ def main():
         print("\nProcessing: {}\n".format(clust_name))
 
         # Get input data from file.
-        m_obs, ra_obs, dec_obs, N_obs, ra_mid, dec_mid, ra_rang,\
+        inp_data, m_obs, ra_obs, dec_obs, N_obs, ra_mid, dec_mid, ra_rang,\
             dec_rang = read_input.in_data(clust_file, data_mode, data_cols)
 
         # Query catalog.
         query = read_input.cat_query(
-            clust_name, N_obs, ra_mid, dec_mid, ra_rang, dec_rang, cat_mode,
-            catalog, m_cat)
+            clust_name, N_obs, ra_mid, dec_mid, ra_rang, cat_mode, catalog)
 
         # Initial full list of observed and queried catalogs.
-        c1_ids = [_ for _ in range(len(ra_obs))]
-        c2_ids = [_ for _ in range(len(query))]
-        ra_q, dec_q = query['ra'][c2_ids], query['dec'][c2_ids]
+        c1_ids = np.arange(len(ra_obs))
+        c2_ids = np.arange(len(query))
+        ra_q, dec_q = query[ra_qry][c2_ids], query[de_qry][c2_ids]
         # Store all unique matches, and observed stars with no match.
         match_c1_ids_all, match_c2_ids_all, no_match_c1_all, match_d2d_all,\
             no_match_d2d_all = [], [], [], [], []
         # Continue until no more duplicate matches exist.
-        while c1_ids:
+        while c1_ids.any():
 
             # Match observed and queried catalogs.
             c2_ids_dup, c1c2_d2d = cat_match(
                 ra_obs[c1_ids], dec_obs[c1_ids], ra_q, dec_q)
+            print("\n  Catalogs matched.")
 
             # Return unique ids for matched stars between catalogs, ids of
             # observed stars with no match found, and ids of observed stars
@@ -176,30 +178,24 @@ def main():
             match_d2d_all += match_d2d
             no_match_d2d_all += no_match_d2d
 
-            print("  Match:", len(match_c1_ids))
+            print("  Unique matches:", len(match_c1_ids))
             print("  Average match separation: {:.2f} arcsec".format(
-                np.mean(c1c2_d2d).arcsec))
+                np.mean(Angle(match_d2d_all).arcsec)))
             print("  No match:", len(no_match_c1))
             print("  Re match:", len(c1_ids))
 
-            if c1_ids:
+            if c1_ids.any():
                 # Queried stars that were not matched to an observed star.
-                c2_ids_r = [_ for _ in c2_ids if _ not in match_c2_ids_all]
+                c2_ids_r = np.setdiff1d(c2_ids, match_c2_ids_all)
                 print("  Queried stars for re-match:", len(c2_ids_r))
                 # To avoid messing with the indexes, change the coordinates
                 # of already matched queried stars so that they can not
                 # possibly be matched again.
-                ra_q, dec_q = [], []
-                for c2_i in c2_ids:
-                    if c2_i in match_c2_ids_all:
-                        # TODO
-                        ra_q.append(0.)
-                        dec_q.append(0.)
-                    else:
-                        ra_q.append(query['ra'][c2_i])
-                        dec_q.append(query['dec'][c2_i])
+                # TODO not sure '0.' is a value to be used.
+                ra_q[match_c2_ids_all] = 0.
+                dec_q[match_c2_ids_all] = 0.
 
-        print('Total stars matched:', len(match_c1_ids_all))
+        print('\nTotal stars matched:', len(match_c1_ids_all))
         print('Total stars not matched:', len(no_match_c1_all))
 
         # Unique stars from observed catalog.
@@ -216,28 +212,30 @@ def main():
             Angle(no_match_d2d_all * u.degree)
 
         if out_fig == 'y':
-            m_qry, ra_qry, dec_qry = query[m_cat], query['ra'], query['dec']
             # Unique magnitudes from queried catalog.
-            m_unq_q = m_qry[match_c2_ids_all]
+            m_unq_q = query[m_qry][match_c2_ids_all]
             # Differences in matched coordinates.
             ra_unq_delta, dec_unq_delta =\
-                Angle(ra_unq - ra_qry[match_c2_ids_all], unit='deg').arcsec,\
-                Angle(dec_unq - dec_qry[match_c2_ids_all], unit='deg').arcsec
+                Angle(ra_unq - query[ra_qry][match_c2_ids_all],
+                      unit='deg').arcsec,\
+                Angle(dec_unq - query[de_qry][match_c2_ids_all],
+                      unit='deg').arcsec
             # Observed stars with no match.
             m_rjct, ra_rjct, dec_rjct = m_obs[no_match_c1_all],\
                 ra_obs[no_match_c1_all], dec_obs[no_match_c1_all]
             make_plots.main(
-                clust_name, m_cat, catalog, max_arcsec, m_obs, ra_obs, dec_obs,
-                m_qry, ra_qry, dec_qry, m_unq, ra_unq, dec_unq, m_unq_q,
-                match_d2d_all, no_match_d2d_all, ra_unq_delta,
-                dec_unq_delta, m_rjct, ra_rjct, dec_rjct)
+                clust_name, m_qry, catalog, max_arcsec, m_obs, ra_obs, dec_obs,
+                query[m_qry], query[ra_qry], query[de_qry], m_unq, ra_unq,
+                dec_unq, m_unq_q, match_d2d_all, no_match_d2d_all,
+                ra_unq_delta, dec_unq_delta, m_rjct, ra_rjct, dec_rjct)
+            print("Output figure created.")
         else:
             print("No output figure created.")
 
         out_data.main(
-            clust_name, clust_file, out_format, out_cols, query,
-            match_c1_ids_all, match_c2_ids_all, match_d2d_all, no_match_c1_all,
-            no_match_d2d_all)
+            clust_name, inp_data, cat_mode, ra_qry, de_qry, query, out_format,
+            out_cols, match_c1_ids_all, match_c2_ids_all, match_d2d_all,
+            no_match_c1_all, no_match_d2d_all)
 
     print("End.")
 

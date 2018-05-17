@@ -42,6 +42,20 @@ def main(
     fig = plt.figure(figsize=(20, 40))
     gs = gridspec.GridSpec(24, 12)
 
+    interval = ZScaleInterval()
+    try:
+        zmin_obs, zmax_obs = interval.get_limits(m_obs[~m_obs.mask])
+        m_obs.fill_value = np.nanmax(m_obs)
+        m_obs = m_obs.filled()
+    except AttributeError:
+        zmin_obs, zmax_obs = interval.get_limits(m_obs)
+    try:
+        zmin_qry, zmax_qry = interval.get_limits(m_qry[~m_qry.mask])
+        m_qry.fill_value = np.nanmax(m_qry)
+        m_qry = m_qry.filled()
+    except AttributeError:
+        zmin_qry, zmax_qry = interval.get_limits(m_qry)
+
     ax = plt.subplot(gs[0:6, 0:6])
     plt.xlim(min(ra_obs), max(ra_obs))
     plt.ylim(min(dec_obs), max(dec_obs))
@@ -52,9 +66,7 @@ def main(
     ax.grid(b=True, which='major', color='gray', linestyle='-', lw=.5,
             zorder=1)
     # Plot all observed stars.
-    interval = ZScaleInterval()
-    zmin, zmax = interval.get_limits(np.array(m_obs))
-    st_sizes_arr = star_size(m_obs, zmin, zmax)
+    st_sizes_arr = star_size(m_obs, zmin_obs, zmax_obs)
     plt.scatter(ra_obs, dec_obs, marker='o', c='k', s=st_sizes_arr, zorder=4)
     ax.invert_xaxis()
     # ax.set_aspect('equal')
@@ -69,8 +81,7 @@ def main(
     ax.minorticks_on()
     ax.grid(b=True, which='major', color='gray', linestyle='-', lw=.5,
             zorder=1)
-    zmin, zmax = interval.get_limits(m_obs)
-    st_sizes_arr = star_size(m_qry, zmin, zmax)
+    st_sizes_arr = star_size(m_qry, zmin_qry, zmax_qry)
     plt.scatter(ra_qry, dec_qry, marker='o', c='k', s=st_sizes_arr,
                 zorder=4)
     ax.invert_xaxis()
@@ -86,8 +97,7 @@ def main(
     ax.minorticks_on()
     ax.grid(b=True, which='major', color='gray', linestyle='-', lw=.5,
             zorder=1)
-    zmin, zmax = interval.get_limits(np.array(m_obs))
-    st_sizes_arr = star_size(m_rjct, zmin, zmax)
+    st_sizes_arr = star_size(m_rjct, zmin_obs, zmax_obs)
     plt.scatter(ra_rjct, dec_rjct, marker='o', c='k', s=st_sizes_arr, zorder=4)
     ax.invert_xaxis()
     # ax.set_aspect('equal')
@@ -101,8 +111,7 @@ def main(
     ax.minorticks_on()
     ax.grid(b=True, which='major', color='gray', linestyle='-', lw=.5,
             zorder=1)
-    zmin, zmax = interval.get_limits(np.array(m_obs))
-    st_sizes_arr = star_size(m_unq, zmin, zmax)
+    st_sizes_arr = star_size(m_unq, zmin_obs, zmax_obs)
     plt.scatter(ra_unq, dec_unq, marker='o', c='k', s=st_sizes_arr, zorder=4)
     ax.invert_xaxis()
     # ax.set_aspect('equal')
@@ -113,13 +122,14 @@ def main(
                  fontsize=14)
     plt.xlabel(r'$\alpha_{obs}$', fontsize=18)
     plt.ylabel(r'$\delta_{obs}$', fontsize=18)
-    xi, yi = np.linspace(ra_unq.min(), ra_unq.max(), 50),\
-        np.linspace(dec_unq.min(), dec_unq.max(), 50)
+    xi, yi = np.linspace(ra_unq.min(), ra_unq.max(), 200),\
+        np.linspace(dec_unq.min(), dec_unq.max(), 200)
     xi, yi = np.meshgrid(xi, yi)
     # Interpolate
-    rbf = scipy.interpolate.Rbf(
-        ra_unq, dec_unq, ra_unq_delta, function='linear')
-    zi = rbf(xi, yi)
+    vals = np.array([ra_unq, dec_unq]).T
+    zi = scipy.interpolate.griddata(
+        vals, ra_unq_delta, (xi, yi), method='linear')
+
     zero_pt = 1. - zi.max() / (zi.max() - zi.min())
     cmap = LinearSegmentedColormap.from_list(
         'mycmap', [(0, 'blue'), (zero_pt, 'white'), (1, 'red')])
@@ -140,13 +150,14 @@ def main(
                  fontsize=14)
     plt.xlabel(r'$\alpha_{obs}$', fontsize=18)
     plt.ylabel(r'$\delta_{obs}$', fontsize=18)
-    xi, yi = np.linspace(ra_unq.min(), ra_unq.max(), 50),\
-        np.linspace(dec_unq.min(), dec_unq.max(), 50)
+    xi, yi = np.linspace(ra_unq.min(), ra_unq.max(), 200),\
+        np.linspace(dec_unq.min(), dec_unq.max(), 200)
     xi, yi = np.meshgrid(xi, yi)
     # Interpolate
-    rbf = scipy.interpolate.Rbf(
-        ra_unq, dec_unq, dec_unq_delta, function='linear')
-    zi = rbf(xi, yi)
+    vals = np.array([ra_unq, dec_unq]).T
+    zi = scipy.interpolate.griddata(
+        vals, dec_unq_delta, (xi, yi), method='linear')
+
     zero_pt = 1. - zi.max() / (zi.max() - zi.min())
     cmap = LinearSegmentedColormap.from_list(
         'mycmap', [(0, 'blue'), (zero_pt, 'white'), (1, 'red')])
@@ -202,8 +213,8 @@ def main(
             zorder=1)
     plt.scatter(m_unq, m_unq - m_unq_q, marker='o', c='b', s=20, lw=.5,
                 edgecolors='k', zorder=4)
-    ax.invert_xaxis()
-    ax.invert_yaxis()
+    # ax.invert_xaxis()
+    # ax.invert_yaxis()
 
     #
     fig.tight_layout()
