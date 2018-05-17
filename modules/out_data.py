@@ -15,9 +15,7 @@ def main(
     if cat_mode == 'query':
         # Store full queried catalog.
         f_out = 'output/' + clust_name + '_query.dat'
-        ascii.write(
-            query, output=f_out, overwrite=True,  # , format='fixed_width'
-            delimiter=' ', fill_values=[(ascii.masked, '--')])
+        ascii.write(query, output=f_out, overwrite=True, format='csv')
 
     # Filter matched observed stars only.
     in_data_match = inp_data[match_c1_ids_all]
@@ -42,8 +40,7 @@ def main(
         # Combine input data with queried data for matched stars.
         comb_dat = hstack([in_data_match, t_match_c2])
         ascii.write(
-            comb_dat, output=f_match, overwrite=True,  # format='fixed_width',
-            delimiter=' ', fill_values=[(ascii.masked, '--')],
+            comb_dat, output=f_match, overwrite=True, format='csv',
             formats={'d_arcsec': '%.4f'})
         print("Data for all matched stars written to file.")
 
@@ -57,14 +54,12 @@ def main(
         # Write matched stars to file.
         ascii.write(
             in_data_match, output=f_match, overwrite=True,
-            format='fixed_width', delimiter=' ',
-            fill_values=[(ascii.masked, '--')], formats={'d_arcsec': '%.4f'})
+            format='csv', formats={'d_arcsec': '%.4f'})
 
         print("Data for all matched stars written to file.")
 
     # Write *not* matched stars to file.
     ascii.write(
         in_data_no_match, output=f_no_match, overwrite=True,
-        format='fixed_width', delimiter=' ',
-        fill_values=[(ascii.masked, '--')], formats={'d_arcsec': '%.4f'})
+        format='csv', formats={'d_arcsec': '%.4f'})
     print("Data for stars with no match written to file.")
