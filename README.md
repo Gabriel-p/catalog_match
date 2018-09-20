@@ -5,9 +5,9 @@ the same frame from a selected catalog.
 
 Both catalogs are then matched using astropy's [match_to_catalog_sky][2].
 
-Currently, only `Vizier` catalogs can be queried. To obtain list of supported
-catalogs in `Vizier`, try the following in a Python session (in this example,
-I search for GAIA2 data):
+Currently, only `Vizier` catalogs can be queried. To obtain the list of
+supported catalogs in `Vizier`, try the following in a Python session (in
+this example, I search for GAIA2 data):
 
     from astroquery.vizier import Vizier
     catalog_list = Vizier.find_catalogs('gaia 2')
