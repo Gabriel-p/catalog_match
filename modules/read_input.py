@@ -1,5 +1,6 @@
 
-from astroquery.irsa import Irsa
+from astroquery.vizier import Vizier
+# from astroquery.irsa import Irsa
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 from astropy.io import ascii
@@ -11,7 +12,11 @@ def in_data(clust_file, data_mode, data_cols):
     '''
     # Loads the data in 'clust_file' as a list of N lists where N is the number
     # of columns. Each of the N lists contains all the data for the column.
-    inp_data = ascii.read(clust_file, fill_values=[(ascii.masked, '99.999')])
+    # try:
+    inp_data = ascii.read(
+        clust_file, format='commented_header',
+        fill_values=[(ascii.masked, '99.999')])
+    # except ascii.core.InconsistentTableError:
 
     if data_mode == 'num':
         m_idx, ra_idx, dec_idx = map(int, data_cols)
@@ -45,13 +50,31 @@ def cat_query(clust_name, N_obs, ra_mid, dec_mid, ra_rang, cat_mode, catalog):
     """
 
     if cat_mode == 'query':
+        print("\nFetching data from {} catalog.".format(catalog))
         txt = 'queried'
         cent = SkyCoord(
             ra=ra_mid * u.degree, dec=dec_mid * u.degree, frame='icrs')
-        # Set maximum limit for retrieved stars.
-        Irsa.ROW_LIMIT = int(4 * N_obs)
-        query = Irsa.query_region(
-            cent, catalog=catalog, spatial='Box', width=ra_rang * u.deg)
+
+        # Vizier query
+        # Unlimited rows, all columns
+        v = Vizier(row_limit=-1, columns=['all'])
+        query = v.query_region(SkyCoord(
+            cent, frame='icrs'), width=ra_rang * u.deg, catalog=[catalog])
+
+        query = query[0]
+
+        # # Irsa query
+        # # Set maximum limit for retrieved stars.
+        # Irsa.ROW_LIMIT = int(4 * N_obs)
+        # query = Irsa.query_region(
+        #     cent, catalog=catalog, spatial='Box', width=ra_rang * u.deg)
+
+        out_file = clust_name + '_query.dat'
+        print("Writing queried data to '{}' file.".format(out_file))
+        ascii.write(
+            query, 'output/' + out_file, #format='csv',
+            overwrite=True)
+
     elif cat_mode == 'read':
         txt = 'read'
         q_file = 'input/' + clust_name + '_query.dat'

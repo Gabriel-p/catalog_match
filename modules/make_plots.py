@@ -116,61 +116,38 @@ def main(
     ax.invert_xaxis()
     # ax.set_aspect('equal')
 
-    # Plot density map.
-    ax = plt.subplot(gs[12:18, 0:6])
-    ax.set_title("Difference between observed and queried " + r"$\alpha$",
-                 fontsize=14)
-    plt.xlabel(r'$\alpha_{obs}$', fontsize=18)
-    plt.ylabel(r'$\delta_{obs}$', fontsize=18)
-    xi, yi = np.linspace(ra_unq.min(), ra_unq.max(), 200),\
-        np.linspace(dec_unq.min(), dec_unq.max(), 200)
-    xi, yi = np.meshgrid(xi, yi)
-    # Interpolate
-    vals = np.array([ra_unq, dec_unq]).T
-    zi = scipy.interpolate.griddata(
-        vals, ra_unq_delta, (xi, yi), method='linear')
+    def densMap(gs_x, strID, radec_unq_delta):
+        # Plot density map.
+        ax = plt.subplot(gs[12:18, gs_x[0]:gs_x[1]])
+        ax.set_title("Difference between observed and queried " + strID,
+                     fontsize=14)
+        plt.xlabel(r'$\alpha_{obs}$', fontsize=18)
+        plt.ylabel(r'$\delta_{obs}$', fontsize=18)
+        xi, yi = np.linspace(ra_unq.min(), ra_unq.max(), 50),\
+            np.linspace(dec_unq.min(), dec_unq.max(), 50)
+        xi, yi = np.meshgrid(xi, yi)
+        # Interpolate
+        vals = np.array([ra_unq, dec_unq]).T
+        zi = scipy.interpolate.griddata(
+            vals, radec_unq_delta, (xi, yi), method='linear')
 
-    zero_pt = 1. - zi.max() / (zi.max() - zi.min())
-    cmap = LinearSegmentedColormap.from_list(
-        'mycmap', [(0, 'blue'), (zero_pt, 'white'), (1, 'red')])
-    im = plt.imshow(
-        zi, vmin=zi.min(), vmax=zi.max(), origin='lower',
-        extent=[ra_unq.min(), ra_unq.max(), dec_unq.min(), dec_unq.max()],
-        cmap=cmap, aspect='auto')
-    # Colorbar
-    divider = make_axes_locatable(ax)
-    cax = divider.append_axes("right", size="2%", pad=0.05)
-    cbar = plt.colorbar(im, cax=cax)
-    cbar.set_label(r'$\Delta\,\alpha\,(arcsec)$', fontsize=12)
-    ax.invert_xaxis()
+        zero_pt = 1. - np.nanmax(zi) / (np.nanmax(zi) - np.nanmin(zi))
+        cmap = LinearSegmentedColormap.from_list(
+            'mycmap', [(0, 'blue'), (zero_pt, 'white'), (1, 'red')])
+        im = plt.imshow(
+            zi, vmin=np.nanmin(zi), vmax=np.nanmax(zi), origin='lower',
+            extent=[ra_unq.min(), ra_unq.max(), dec_unq.min(), dec_unq.max()],
+            cmap=cmap, aspect='auto')
+        # Colorbar
+        divider = make_axes_locatable(ax)
+        cax = divider.append_axes("right", size="2%", pad=0.05)
+        cbar = plt.colorbar(im, cax=cax)
+        cbar.set_label(r'$\Delta\,$' + strID + ' (arcsec)', fontsize=12)
+        ax.invert_xaxis()
 
-    # Plot density map.
-    ax = plt.subplot(gs[12:18, 6:12])
-    ax.set_title("Difference between observed and queried " + r"$\delta$",
-                 fontsize=14)
-    plt.xlabel(r'$\alpha_{obs}$', fontsize=18)
-    plt.ylabel(r'$\delta_{obs}$', fontsize=18)
-    xi, yi = np.linspace(ra_unq.min(), ra_unq.max(), 200),\
-        np.linspace(dec_unq.min(), dec_unq.max(), 200)
-    xi, yi = np.meshgrid(xi, yi)
-    # Interpolate
-    vals = np.array([ra_unq, dec_unq]).T
-    zi = scipy.interpolate.griddata(
-        vals, dec_unq_delta, (xi, yi), method='linear')
-
-    zero_pt = 1. - zi.max() / (zi.max() - zi.min())
-    cmap = LinearSegmentedColormap.from_list(
-        'mycmap', [(0, 'blue'), (zero_pt, 'white'), (1, 'red')])
-    im = plt.imshow(
-        zi, vmin=zi.min(), vmax=zi.max(), origin='lower',
-        extent=[ra_unq.min(), ra_unq.max(), dec_unq.min(), dec_unq.max()],
-        cmap=cmap, aspect='auto')
-    # Colorbar
-    divider = make_axes_locatable(ax)
-    cax = divider.append_axes("right", size="2%", pad=0.05)
-    cbar = plt.colorbar(im, cax=cax)
-    cbar.set_label(r'$\Delta\,\delta\,(arcsec)$', fontsize=12)
-    ax.invert_xaxis()
+    # RA, DEC difference dens maps
+    densMap([0, 6], r"$\alpha$", ra_unq_delta)
+    densMap([6, 12], r"$\delta$", dec_unq_delta)
 
     ax = plt.subplot(gs[18:21, 0:6])
     ax.set_title("Separation between stars", fontsize=14)

@@ -1,32 +1,37 @@
 
-# Data columns input: 'm_obs' is an observed magnitude, and 'ra, dec' its
-# observed coordinates. Accepted read modes are:
+# Data columns input.
 #
-# * mode
-#   num: give indexes of data columns starting at zero.
-#   nam: give names of the columns as stored in the input file.
+# * mode: num / nam
+#   - num: give the *indexes* of the data columns, starting at zero.
+#   - nam: give the *names* of the data columns as stored in the input file.
+# * m_obs: index/name of the observed magnitude column.
+# * ra:    index/name of the ra coordinate column.
+# * dec:   index/name of the dec coordinate column.
 #
 #   mode   m_obs    ra   dec
 DC   num       3     4     5
 
 
-# Select the mode. If 'mode' is 'query' the 'cat_name' element stores the
-# name of catalog to query. The 'm_qry' element is any magnitude in that
-# catalog.
+# Working mode.
 #
-# * mode
-#   query: download 'cat_name' catalog.
-#   read: read stored catalog. Name must follow format 'cname_query.dat',
-#         where 'cname' is the name of the input data file (no extension).
+# * mode: query / read
+#   - query: download and cross-match with the 'cat_name' catalog.
+#   - read : read stored catalog in /input folder. Name must follow format
+#            'cname_query.dat', where 'cname' is the name of the input data
+#            file. In this case, the 'cat_name' parameter is not used.
+# * cat_name: name of the catalog to query. 
+# * m_qry   : any magnitude column in this catalog.
+# * ra_qry  : name of the ra coordinate column in this catalog.
+# * dec_qry : name of the dec coordinate column in this catalog.
 #
-#   mode    cat_name    m_qry   ra_qry    de_qry
-CA  query     fp_psc      j_m   RAJ2000   DEJ2000
+#   mode    cat_name    m_qry    ra_qry    de_qry
+CA  query      I/345     Gmag   RAJ2000   DEJ2000
 
 
-# Maximum separation in arcsecs.
+# Maximum separation to consider a match, in arcsecs.
 #
 #    max_arcsec
-MA           10
+MA            5
 
 
 # Create output figure?
@@ -35,12 +40,12 @@ MA           10
 FI      y
 
 
-# Output format.
+# Output file format.
 #
-# * mode
-#   all: write all data available in queried catalog.
-#   man: manually select which columns will be written, using the 'col_names'
-#        parameter. Write the name of each column separated by spaces.
+# * mode all / man
+#   - all: write all data available in queried catalog.
+#   - man: manually select which columns will be written, using the 'col_names'
+#          parameter. Write the name of each column separated by spaces.
 #
 #   mode  col_names
 OF   all        j_m
