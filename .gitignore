@@ -89,6 +89,7 @@ ENV/
 .ropeproject
 
 *.png
+!out.png
 *.dat
 !params_input_def.dat
 *.txt

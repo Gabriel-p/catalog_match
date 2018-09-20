@@ -49,5 +49,22 @@ Run with:
     (cat-match) $ python catalog-match.py
 
 
+## Output
+
+The code outputs three `.dat` files:
+
+* `cluster_match.dat`: file with the cross-matched stars.
+* `cluster_no_match.dat`: file with the stars that could not be cross-matched.
+* `cluster_query.dat`: file with the queried catalog data.
+
+and one `.png` file:
+
+* `cluster.png`: figures showing the crossed-matched stars and more.
+
+which looks like this:
+
+![out](out.png)
+
+
 [1]: https://astroquery.readthedocs.io
 [2]: http://docs.astropy.org/en/stable/coordinates/matchsep.html#matching-catalogs
