@@ -55,7 +55,10 @@ def get_files():
                 isfile(join('input/', f))]
 
     # Remove readme file it is still there.
-    cl_files.remove('input/README.md')
+    try:
+        cl_files.remove('input/README.md')
+    except ValueError:
+        pass
     # Remove any '_query.dat' file.
     for _ in cl_files:
         if _.endswith('_query.dat'):
