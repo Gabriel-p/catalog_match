@@ -24,16 +24,18 @@ After `conda` is installed,create an environment and install the required
 packages with:
 
     $ conda create -n cat-match matplotlib numpy scipy astropy
-    $ conda install -c astropy astroquery
 
 Then activate the environment:
 
     $ conda activate cat-match
 
-After a succesfull activation, the terminal session should look like:
+After a successful activation, the terminal session should look like:
 
     (cat-match) $
 
+Finally, install the `astroquery` package:
+
+    (cat-match) $ conda install -c astropy astroquery
 
 
 ## Running
