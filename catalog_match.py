@@ -91,8 +91,9 @@ def main():
         try:
             inp_data, m_obs, ra_obs, dec_obs, N_obs, ra_mid, dec_mid, ra_rang,\
                 dec_rang = read_input.in_data(clust_file, data_mode, data_cols)
-        except ascii.core.InconsistentTableError:
-            print("ERROR: could not read data file: {}".format(clust_file))
+        except ascii.core.InconsistentTableError as err:
+            print("{}\n\nERROR: could not read data file {}".format(
+                err, clust_file))
             keep_going = False
 
         if keep_going is True:
