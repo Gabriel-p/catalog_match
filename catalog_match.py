@@ -16,63 +16,12 @@ from modules import make_plots
 from modules import out_data
 
 
-def params_input():
-    """
-    Read input parameters from 'params_input.dat' file.
-    """
-    with open('params_input.dat', "r") as f_dat:
-        # Iterate through each line in the file.
-        for l, line in enumerate(f_dat):
-            if not line.startswith("#") and line.strip() != '':
-                reader = line.split()
-                if reader[0] == 'DC':
-                    data_mode = reader[1]
-                    data_cols = reader[2:]
-                if reader[0] == 'CA':
-                    cat_mode = reader[1]
-                    catalog = reader[2]
-                    m_qry = reader[3]
-                    ra_qry = reader[4]
-                    de_qry = reader[5]
-                if reader[0] == 'MA':
-                    max_arcsec = float(reader[1])
-                if reader[0] == 'FI':
-                    out_fig = reader[1]
-                if reader[0] == 'OF':
-                    out_format = reader[1]
-                    out_cols = reader[2:]
-
-    return data_mode, data_cols, cat_mode, catalog, m_qry, ra_qry, de_qry,\
-        max_arcsec, out_fig, out_format, out_cols
-
-
-def get_files():
-    '''
-    Store the paths and names of all the input clusters stored in the
-    input folder.
-    '''
-    cl_files = [join('input/', f) for f in listdir('input/') if
-                isfile(join('input/', f))]
-
-    # Remove readme file it is still there.
-    try:
-        cl_files.remove('input/README.md')
-    except ValueError:
-        pass
-    # Remove any '_query.dat' file.
-    for _ in cl_files:
-        if _.endswith('_query.dat'):
-            cl_files.remove(_)
-
-    return cl_files
-
-
 def main():
     """
     Observed catalog matcher.
     """
 
-    data_mode, data_cols, cat_mode, catalog, m_qry, ra_qry, de_qry,\
+    data_mode, data_cols, cat_mode, catalog, m_qry, ra_qry, de_qry, box_s,\
         max_arcsec, out_fig, out_format, out_cols = params_input()
 
     # Generate output dir if it doesn't exist.
@@ -99,7 +48,8 @@ def main():
         if keep_going is True:
             # Query catalog.
             query = read_input.cat_query(
-                clust_name, N_obs, ra_mid, dec_mid, ra_rang, cat_mode, catalog)
+                clust_name, N_obs, ra_mid, dec_mid, ra_rang, box_s, cat_mode,
+                catalog)
 
             # Match catalogs.
             match_c1_ids_all, no_match_c1_all, match_d2d_all,\
@@ -129,13 +79,16 @@ def main():
                 m_rjct, ra_rjct, dec_rjct = m_obs[no_match_c1_all],\
                     ra_obs[no_match_c1_all], dec_obs[no_match_c1_all]
 
-                make_plots.main(
-                    clust_name, m_qry, catalog, max_arcsec, m_obs, ra_obs,
-                    dec_obs, query[m_qry], query[ra_qry], query[de_qry],
-                    m_unq, ra_unq, dec_unq, m_unq_q, match_d2d_all,
-                    no_match_d2d_all, ra_unq_delta, dec_unq_delta, m_rjct,
-                    ra_rjct, dec_rjct)
-                print("Output figure created.")
+                if match_c1_ids_all:
+                    make_plots.main(
+                        clust_name, m_qry, catalog, max_arcsec, m_obs, ra_obs,
+                        dec_obs, query[m_qry], query[ra_qry], query[de_qry],
+                        m_unq, ra_unq, dec_unq, m_unq_q, match_d2d_all,
+                        no_match_d2d_all, ra_unq_delta, dec_unq_delta, m_rjct,
+                        ra_rjct, dec_rjct)
+                    print("Output figure created.")
+                else:
+                    print("  ERROR: no matches to plot.")
             else:
                 print("No output figure created.")
 
@@ -145,6 +98,59 @@ def main():
                 match_d2d_all, no_match_c1_all, no_match_d2d_all)
 
     print("\nEnd.")
+
+
+def params_input():
+    """
+    Read input parameters from 'params_input.dat' file.
+    """
+    with open('params_input.dat', "r") as f_dat:
+        # Iterate through each line in the file.
+        for l, line in enumerate(f_dat):
+            if not line.startswith("#") and line.strip() != '':
+                reader = line.split()
+                if reader[0] == 'DC':
+                    data_mode = reader[1]
+                    data_cols = reader[2:]
+                if reader[0] == 'CA':
+                    cat_mode = reader[1]
+                    catalog = reader[2]
+                    m_qry = reader[3]
+                    ra_qry = reader[4]
+                    de_qry = reader[5]
+                    box_s = reader[6] if reader[6] == 'auto' else\
+                        float(reader[6])
+                if reader[0] == 'MA':
+                    max_arcsec = float(reader[1])
+                if reader[0] == 'FI':
+                    out_fig = reader[1]
+                if reader[0] == 'OF':
+                    out_format = reader[1]
+                    out_cols = reader[2:]
+
+    return data_mode, data_cols, cat_mode, catalog, m_qry, ra_qry, de_qry,\
+        box_s, max_arcsec, out_fig, out_format, out_cols
+
+
+def get_files():
+    '''
+    Store the paths and names of all the input clusters stored in the
+    input folder.
+    '''
+    cl_files = [join('input/', f) for f in listdir('input/') if
+                isfile(join('input/', f))]
+
+    # Remove readme file it is still there.
+    try:
+        cl_files.remove('input/README.md')
+    except ValueError:
+        pass
+    # Remove any '_query.dat' file.
+    for _ in cl_files:
+        if _.endswith('_query.dat'):
+            cl_files.remove(_)
+
+    return cl_files
 
 
 if __name__ == '__main__':

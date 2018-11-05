@@ -14,7 +14,7 @@ def in_data(clust_file, data_mode, data_cols):
     # of columns. Each of the N lists contains all the data for the column.
     # try:
     inp_data = ascii.read(
-        clust_file, format='commented_header',
+        clust_file, #format='commented_header',
         fill_values=[(ascii.masked, '99.999')])
     # except ascii.core.InconsistentTableError:
 
@@ -44,7 +44,8 @@ def in_data(clust_file, data_mode, data_cols):
         dec_rang
 
 
-def cat_query(clust_name, N_obs, ra_mid, dec_mid, ra_rang, cat_mode, catalog):
+def cat_query(
+        clust_name, N_obs, ra_mid, dec_mid, ra_rang, box_s, cat_mode, catalog):
     """
     Query selected catalog or read from file a previous stored version.
     """
@@ -55,13 +56,23 @@ def cat_query(clust_name, N_obs, ra_mid, dec_mid, ra_rang, cat_mode, catalog):
         cent = SkyCoord(
             ra=ra_mid * u.degree, dec=dec_mid * u.degree, frame='icrs')
 
+        if str(box_s) == 'auto':
+            width = ra_rang * u.deg
+            print("Using width={:.3f}".format(width))
+        else:
+            width = box_s * u.deg
+            print("Using width={:.3f}".format(width))
+
         # Vizier query
         # Unlimited rows, all columns
         v = Vizier(row_limit=-1, columns=['all'])
         query = v.query_region(SkyCoord(
-            cent, frame='icrs'), width=ra_rang * u.deg, catalog=[catalog])
+            cent, frame='icrs'), width=width, catalog=[catalog])
 
-        query = query[0]
+        try:
+            query = query[0]
+        except IndexError:
+            raise ValueError("Queried catalog came back empty")
 
         # # Irsa query
         # # Set maximum limit for retrieved stars.
@@ -76,6 +87,7 @@ def cat_query(clust_name, N_obs, ra_mid, dec_mid, ra_rang, cat_mode, catalog):
             overwrite=True)
 
     elif cat_mode == 'read':
+        print("\nReading input catalog")
         txt = 'read'
         q_file = 'input/' + clust_name + '_query.dat'
         query = ascii.read(q_file)

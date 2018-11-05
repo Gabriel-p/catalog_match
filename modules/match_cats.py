@@ -100,8 +100,9 @@ def main(ra_qry, de_qry, max_arcsec, ra_obs, dec_obs, query):
         no_match_d2d_all += no_match_d2d
 
         print("  Unique matches:", len(match_c1_ids))
-        print("  Average match separation: {:.2f} arcsec".format(
-            np.mean(Angle(match_d2d_all).arcsec)))
+        if match_d2d_all:
+            print("  Average match separation: {:.2f} arcsec".format(
+                np.mean(Angle(match_d2d_all).arcsec)))
         print("  No match:", len(no_match_c1))
         print("  Re match:", len(c1_ids))
 
