@@ -45,7 +45,8 @@ def in_data(clust_file, data_mode, data_cols):
 
 
 def cat_query(
-        clust_name, N_obs, ra_mid, dec_mid, ra_rang, box_s, cat_mode, catalog):
+    clust_name, N_obs, ra_mid, dec_mid, dec_rang, box_s, cat_mode,
+        catalog):
     """
     Query selected catalog or read from file a previous stored version.
     """
@@ -57,11 +58,11 @@ def cat_query(
             ra=ra_mid * u.degree, dec=dec_mid * u.degree, frame='icrs')
 
         if str(box_s) == 'auto':
-            width = ra_rang * u.deg
-            print("Using width={:.3f}".format(width))
+            width = dec_rang * u.deg
+            print("Using auto width={:.3f}".format(width))
         else:
             width = box_s * u.deg
-            print("Using width={:.3f}".format(width))
+            print("Using manual width={:.3f}".format(width))
 
         # Vizier query
         # Unlimited rows, all columns
@@ -82,6 +83,7 @@ def cat_query(
 
         out_file = clust_name + '_query.dat'
         print("Writing queried data to '{}' file.".format(out_file))
+        # TODO waiting for fix to https://github.com/astropy/astropy/issues/7744
         ascii.write(
             query, 'output/' + out_file, #format='csv',
             overwrite=True)

@@ -72,8 +72,8 @@ def main(
     # ax.set_aspect('equal')
 
     ax = plt.subplot(gs[0:6, 6:12])
-    plt.xlim(min(ra_obs), max(ra_obs))
-    plt.ylim(min(dec_obs), max(dec_obs))
+    plt.xlim(min(ra_qry), max(ra_qry))
+    plt.ylim(min(dec_qry), max(dec_qry))
     ax.set_title(
         "Queried catalog {} ({})".format(catalog, len(m_qry)), fontsize=14)
     plt.xlabel(r'$\alpha_{queried}$', fontsize=18)

@@ -48,8 +48,8 @@ def main():
         if keep_going is True:
             # Query catalog.
             query = read_input.cat_query(
-                clust_name, N_obs, ra_mid, dec_mid, ra_rang, box_s, cat_mode,
-                catalog)
+                clust_name, N_obs, ra_mid, dec_mid, dec_rang, box_s,
+                cat_mode, catalog)
 
             # Match catalogs.
             match_c1_ids_all, no_match_c1_all, match_d2d_all,\
