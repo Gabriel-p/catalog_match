@@ -24,14 +24,11 @@ def cat_match(ra_obs, dec_obs, ra_qry, dec_qry):
     return idx, d2d
 
 
-def match_filter(c1_ids, c2_ids, d2d, max_arcsec):
+def match_filter(c1_ids, c2_ids, d2d, max_deg):
     """
     Reject duplicated matches and matched stars with distances beyond
     the maximum separation defined.
     """
-    # Maximum separation in arcsec, convert to decimal degrees.
-    max_deg = Angle(max_arcsec * u.arcsec).deg
-
     match_c1_ids, dupl_c1_ids, no_match_c1 = [], [], []
     match_c2_ids, match_d2d, no_match_d2d = [], [], []
     # Indexes of matched star in both catalogs and distance between them.
@@ -71,6 +68,10 @@ def main(ra_qry, de_qry, max_arcsec, ra_obs, dec_obs, query):
     Catalog matching module.
     """
 
+    print("\nMaximum match distance: {:.1f} [arcsec]".format(max_arcsec))
+    # Maximum separation in arcsec, convert to decimal degrees.
+    max_deg = Angle(max_arcsec * u.arcsec).deg
+
     # Initial full list of observed and queried catalogs.
     c1_ids = np.arange(len(ra_obs))
     c2_ids = np.arange(len(query))
@@ -79,19 +80,23 @@ def main(ra_qry, de_qry, max_arcsec, ra_obs, dec_obs, query):
     match_c1_ids_all, match_c2_ids_all, no_match_c1_all, match_d2d_all,\
         no_match_d2d_all = [], [], [], [], []
     # Continue until no more duplicate matches exist.
+    print("\nMatching catalogs.")
+    j = 0
     while c1_ids.any():
+
+        print("\n  {}.".format(j + 1))
+        j += 1
 
         # Match observed and queried catalogs.
         c2_ids_dup, c1c2_d2d = cat_match(
             ra_obs[c1_ids], dec_obs[c1_ids], ra_q, dec_q)
-        print("\n  Catalogs matched.")
 
         # Return unique ids for matched stars between catalogs, ids of
         # observed stars with no match found, and ids of observed stars
         # with a duplicated match that will be re-processed ('c1_ids').
         match_c1_ids, match_c2_ids, no_match_c1, c1_ids, match_d2d,\
-            no_match_d2d = match_filter(
-                c1_ids, c2_ids_dup, c1c2_d2d, max_arcsec)
+            no_match_d2d = match_filter(c1_ids, c2_ids_dup, c1c2_d2d, max_deg)
+
         # Store all unique solutions and no match solutions.
         match_c1_ids_all += match_c1_ids
         match_c2_ids_all += match_c2_ids
@@ -117,8 +122,13 @@ def main(ra_qry, de_qry, max_arcsec, ra_obs, dec_obs, query):
             ra_q[match_c2_ids_all] = 0.
             dec_q[match_c2_ids_all] = 0.
 
-    print('\nTotal stars matched:', len(match_c1_ids_all))
-    print('Total stars not matched:', len(no_match_c1_all))
+    print('\nObserved stars matched:', len(match_c1_ids_all))
+    print('Observed stars not matched:', len(no_match_c1_all))
+
+    # Rejected magnitudes from queried catalog.
+    q_rjct_mks = np.ones(len(query), dtype=bool)
+    q_rjct_mks[match_c2_ids_all] = False
+    print('Queried stars not matched:', sum(q_rjct_mks))
 
     return match_c1_ids_all, no_match_c1_all, match_d2d_all, no_match_d2d_all,\
-        match_c2_ids_all
+        match_c2_ids_all, q_rjct_mks

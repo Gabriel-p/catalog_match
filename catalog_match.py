@@ -30,6 +30,8 @@ def main():
 
     # Process all files inside 'input/' folder.
     cl_files = get_files()
+    if not cl_files:
+        print("No input cluster files found")
     for clust_file in cl_files:
 
         clust_name = clust_file.split('/')[1].split('.')[0]
@@ -39,7 +41,8 @@ def main():
         keep_going = True
         try:
             inp_data, m_obs, ra_obs, dec_obs, N_obs, ra_mid, dec_mid, ra_rang,\
-                dec_rang = read_input.in_data(clust_file, data_mode, data_cols)
+                dec_rang, m_obs_nam = read_input.in_data(
+                    clust_file, data_mode, data_cols)
         except ascii.core.InconsistentTableError as err:
             print("{}\n\nERROR: could not read data file {}".format(
                 err, clust_file))
@@ -53,7 +56,8 @@ def main():
 
             # Match catalogs.
             match_c1_ids_all, no_match_c1_all, match_d2d_all,\
-                no_match_d2d_all, match_c2_ids_all = match_cats.main(
+                no_match_d2d_all, match_c2_ids_all, q_rjct_mks =\
+                match_cats.main(
                     ra_qry, de_qry, max_arcsec, ra_obs, dec_obs, query)
 
             # Store match and no match separations as 'Angle' objects.
@@ -69,6 +73,9 @@ def main():
 
                 # Unique magnitudes from queried catalog.
                 m_unq_q = query[m_qry][match_c2_ids_all]
+                # Rejected magnitudes from queried catalog.
+                m_rjct_q = query[m_qry][q_rjct_mks]
+
                 # Differences in matched coordinates.
                 ra_unq_delta, dec_unq_delta =\
                     Angle(ra_unq - query[ra_qry][match_c2_ids_all],
@@ -81,11 +88,11 @@ def main():
 
                 if match_c1_ids_all:
                     make_plots.main(
-                        clust_name, m_qry, catalog, max_arcsec, m_obs, ra_obs,
-                        dec_obs, query[m_qry], query[ra_qry], query[de_qry],
-                        m_unq, ra_unq, dec_unq, m_unq_q, match_d2d_all,
-                        no_match_d2d_all, ra_unq_delta, dec_unq_delta, m_rjct,
-                        ra_rjct, dec_rjct)
+                        clust_name, m_qry, catalog, max_arcsec, m_obs,
+                        m_obs_nam, ra_obs, dec_obs, query[m_qry],
+                        query[ra_qry], query[de_qry], m_unq, ra_unq, dec_unq,
+                        m_unq_q, m_rjct_q, match_d2d_all, no_match_d2d_all,
+                        ra_unq_delta, dec_unq_delta, m_rjct, ra_rjct, dec_rjct)
                     print("Output figure created.")
                 else:
                     print("  ERROR: no matches to plot.")
@@ -154,4 +161,11 @@ def get_files():
 
 
 if __name__ == '__main__':
+    # To see available catalogs:
+    if False:
+        from astroquery.vizier import Vizier
+        # catalog_list = Vizier.find_catalogs('Pan-STARRS')
+        catalog_list = Vizier.find_catalogs('ALLWISE')
+        catalogs = Vizier.get_catalogs(catalog_list.keys())
+        print(catalogs)
     main()

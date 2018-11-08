@@ -22,9 +22,10 @@ def in_data(clust_file, data_mode, data_cols):
         m_idx, ra_idx, dec_idx = map(int, data_cols)
         m_obs, ra_obs, dec_obs = inp_data.columns[m_idx],\
             inp_data.columns[ra_idx], inp_data.columns[dec_idx]
+        m_obs_nam = None
     elif data_mode == 'nam':
-        m_nam, ra_nam, dec_nam = data_cols
-        m_obs, ra_obs, dec_obs = inp_data[m_nam], inp_data[ra_nam],\
+        m_obs_nam, ra_nam, dec_nam = data_cols
+        m_obs, ra_obs, dec_obs = inp_data[m_obs_nam], inp_data[ra_nam],\
             inp_data[dec_nam]
 
     N_obs = len(ra_obs)
@@ -41,7 +42,7 @@ def in_data(clust_file, data_mode, data_cols):
     print('Centre (ra, dec): {:.4f}, {:.4f}'.format(ra_mid, dec_mid))
 
     return inp_data, m_obs, ra_obs, dec_obs, N_obs, ra_mid, dec_mid, ra_rang,\
-        dec_rang
+        dec_rang, m_obs_nam
 
 
 def cat_query(
