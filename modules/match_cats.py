@@ -3,6 +3,7 @@ import numpy as np
 from astropy.coordinates import SkyCoord
 from astropy.coordinates import Angle
 from astropy import units as u
+import warnings
 
 
 def cat_match(ra_obs, dec_obs, ra_qry, dec_qry):
@@ -13,13 +14,15 @@ def cat_match(ra_obs, dec_obs, ra_qry, dec_qry):
     d2d are the on-sky distances between them,
     d3d are the 3-dimensional distances
     """
-    # Define observed and queried catalogs.
-    c1 = SkyCoord(ra_obs, dec_obs, unit=(u.degree, u.degree))
-    c2 = SkyCoord(ra_qry, dec_qry, unit=(u.degree, u.degree))
+    # Catch 'RuntimeWarning' issued because we are inserting 'nan' values
+    # into the queried coordinates.
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        # Define observed and queried catalogs.
+        c1 = SkyCoord(ra_obs, dec_obs, unit=(u.degree, u.degree))
+        c2 = SkyCoord(ra_qry, dec_qry, unit=(u.degree, u.degree))
 
-    idx, d2d, d3d = c1.match_to_catalog_sky(c2)
-    # print('Unique matches:', len(set(idx)))
-    # print('Filtered matches:', np.sum([d2d.arcsec < max_arcsec]))
+        idx, d2d, d3d = c1.match_to_catalog_sky(c2)
 
     return idx, d2d
 
@@ -63,11 +66,10 @@ def match_filter(c1_ids, c2_ids, d2d, max_deg):
         match_d2d, no_match_d2d
 
 
-def main(ra_qry, de_qry, max_arcsec, ra_obs, dec_obs, query):
+def main(ra_qry, dec_qry, max_arcsec, ra_obs, dec_obs, query):
     """
     Catalog matching module.
     """
-
     print("\nMaximum match distance: {:.1f} [arcsec]".format(max_arcsec))
     # Maximum separation in arcsec, convert to decimal degrees.
     max_deg = Angle(max_arcsec * u.arcsec).deg
@@ -75,7 +77,7 @@ def main(ra_qry, de_qry, max_arcsec, ra_obs, dec_obs, query):
     # Initial full list of observed and queried catalogs.
     c1_ids = np.arange(len(ra_obs))
     c2_ids = np.arange(len(query))
-    ra_q, dec_q = query[ra_qry][c2_ids], query[de_qry][c2_ids]
+    ra_q, dec_q = query[ra_qry][c2_ids], query[dec_qry][c2_ids]
     # Store all unique matches, and observed stars with no match.
     match_c1_ids_all, match_c2_ids_all, no_match_c1_all, match_d2d_all,\
         no_match_d2d_all = [], [], [], [], []
@@ -90,12 +92,14 @@ def main(ra_qry, de_qry, max_arcsec, ra_obs, dec_obs, query):
         # Match observed and queried catalogs.
         c2_ids_dup, c1c2_d2d = cat_match(
             ra_obs[c1_ids], dec_obs[c1_ids], ra_q, dec_q)
+        print("  Matched catalogs")
 
         # Return unique ids for matched stars between catalogs, ids of
         # observed stars with no match found, and ids of observed stars
         # with a duplicated match that will be re-processed ('c1_ids').
         match_c1_ids, match_c2_ids, no_match_c1, c1_ids, match_d2d,\
             no_match_d2d = match_filter(c1_ids, c2_ids_dup, c1c2_d2d, max_deg)
+        print("  Unique stars filtered")
 
         # Store all unique solutions and no match solutions.
         match_c1_ids_all += match_c1_ids
@@ -118,9 +122,8 @@ def main(ra_qry, de_qry, max_arcsec, ra_obs, dec_obs, query):
             # To avoid messing with the indexes, change the coordinates
             # of already matched queried stars so that they can not
             # possibly be matched again.
-            # TODO not sure '0.' is a value to be used.
-            ra_q[match_c2_ids_all] = 0.
-            dec_q[match_c2_ids_all] = 0.
+            ra_q[match_c2_ids_all] = np.nan
+            dec_q[match_c2_ids_all] = np.nan
 
     print('\nObserved stars matched:', len(match_c1_ids_all))
     print('Observed stars not matched:', len(no_match_c1_all))

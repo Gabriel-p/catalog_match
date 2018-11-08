@@ -94,7 +94,8 @@ def cat_query(
         txt = 'read'
         q_file = 'input/' + clust_name + '_query.dat'
         query = ascii.read(q_file)
+        catalog = clust_name
 
     print("N ({} catalog): {}".format(txt, len(query)))
 
-    return query
+    return query, catalog

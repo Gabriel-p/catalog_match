@@ -170,30 +170,32 @@ def main(
     ax = plt.subplot(gs[6:12, 18:24])
     ax.set_title("Magnitudes for not matched stars", fontsize=14)
     plt.xlabel(
-        r"${} $".format(m_obs_str) + r"$|\;{}$".format(m_cat), fontsize=18)
-    plt.ylabel(r'$N$', fontsize=18)
+        r"${}\;$".format(m_obs_str) + r"$|\;{}$".format(m_cat), fontsize=18)
+    plt.ylabel(r'$N\;(norm)$', fontsize=18)
     ax.minorticks_on()
     ax.grid(b=True, which='major', color='k', linestyle='--', lw=.5,
             zorder=1)
-    plt.hist(m_rjct, bins=20, alpha=.5, label="Observed")
-    plt.hist(m_rjct_q, bins=20, alpha=.5, label="Queried")
+    plt.hist(m_rjct, bins=20, alpha=.5, density=True, label="Observed")
+    plt.hist(m_rjct_q, bins=20, alpha=.5, density=True, label="Queried")
     plt.legend()
 
     ax = plt.subplot(gs[12:15, 0:6])
     ax.set_title("Separation between stars (match<{:.1f} [arcsec])".format(
         max_arcsec), fontsize=14)
     plt.xlabel(r'$d\,[arcsec]$', fontsize=18)
-    ax.hist(match_d2d_all.arcsec, color='green', alpha=0.5,
-            label='Match ({})'.format(len(match_d2d_all)))
-    ax.hist(no_match_d2d_all.arcsec, color='red', bins=20, alpha=0.5,
-            label='No match ({})'.format(len(no_match_d2d_all)))
+    plt.ylabel(r'$N\;(norm)$', fontsize=18)
+    ax.hist(match_d2d_all.arcsec, color='green', bins=20, alpha=0.5,
+            density=True, label='Match ({})'.format(len(match_d2d_all)))
+    # Clip at [0, 60] arcsec
+    d2d_clip = np.clip(no_match_d2d_all.arcsec, 0., 60.)
+    ax.hist(d2d_clip, color='red', bins=20, alpha=0.5, density=True,
+            label='No match ({})'.format(len(d2d_clip)))
     ax.axvline(max_arcsec, color='k', linestyle='--')
     # Legend
     handles, labels = ax.get_legend_handles_labels()
     leg = ax.legend(handles, labels, loc='upper right')
     leg.get_frame().set_alpha(0.5)
-    nmd_mean, nmd_std = np.mean(no_match_d2d_all.arcsec),\
-        np.std(no_match_d2d_all.arcsec)
+    nmd_mean, nmd_std = np.nanmedian(d2d_clip), np.nanstd(d2d_clip)
     plt.xlim(-.2, nmd_mean + 2. * nmd_std)
 
     ax = plt.subplot(gs[12:15, 6:12])
@@ -222,3 +224,5 @@ def main(
     fig.tight_layout()
     # Generate output plot file.
     plt.savefig('output/' + clust_name + '.png', dpi=150, bbox_inches='tight')
+    plt.clf()
+    plt.close("all")
