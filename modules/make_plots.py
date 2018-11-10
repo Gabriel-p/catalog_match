@@ -74,8 +74,7 @@ def main(
     ax = plt.subplot(gs[0:6, 6:12])
     plt.xlim(min(ra_qry), max(ra_qry))
     plt.ylim(min(dec_qry), max(dec_qry))
-    ax.set_title(
-        "Queried catalog {} ({})".format(catalog, len(m_qry)), fontsize=14)
+    ax.set_title("{} ({})".format(catalog, len(m_qry)), fontsize=14)
     plt.xlabel(r'$\alpha_{queried}$', fontsize=18)
     plt.ylabel(r'$\delta_{queried}$', fontsize=18)
     ax.minorticks_on()
@@ -229,7 +228,7 @@ def main(
                 bbox=dict(facecolor='w', edgecolor='w', alpha=.5))
     ax.set_xticks(x)
     ax.set_xticklabels(
-        ['Observed', 'Queried', 'Match (obs)', 'No match (obs)',
+        ['Observed', 'Queried', 'Match', 'No match (obs)',
          'No match (qrd)'])
     ax.tick_params(axis='x', which='major', labelsize=12)
 

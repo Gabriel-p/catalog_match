@@ -89,12 +89,14 @@ def cat_query(
             query, 'output/' + out_file, #format='csv',
             overwrite=True)
 
+        catalog = "Queried catalog {}".format(catalog)
+
     elif cat_mode == 'read':
         print("\nReading input catalog")
         txt = 'read'
         q_file = 'input/' + clust_name + '_query.dat'
         query = ascii.read(q_file)
-        catalog = clust_name
+        catalog = "Read catalog {}".format(catalog)
 
     print("N ({} catalog): {}".format(txt, len(query)))
 

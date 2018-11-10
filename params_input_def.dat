@@ -20,7 +20,7 @@ DC   num       3     4     5
 #            'cname_query.dat', where 'cname' is the name of the input data
 #            file. In this case, the 'cat_name' parameter is not used.
 # * cat_name: if mode=query, name of the catalog to query.
-#             If mode=read, it is not used.
+#             If mode=read, it is only used in the final plot.
 # * m_qry   : any magnitude column in this catalog.
 # * ra_qry  : name of the ra coordinate column in this catalog.
 # * dec_qry : name of the dec coordinate column in this catalog.
