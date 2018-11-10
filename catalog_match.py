@@ -23,7 +23,8 @@ def main():
     """
 
     data_mode, data_cols, cat_mode, catalog, m_qry, ra_qry, dec_qry, box_s,\
-        max_arcsec, out_fig, out_format, out_cols = params_input()
+        max_arcsec, max_mag_delta, out_fig, out_format, out_cols =\
+        params_input()
 
     # Generate output dir if it doesn't exist.
     if not exists('output'):
@@ -57,9 +58,10 @@ def main():
 
             # Match catalogs.
             match_c1_ids_all, no_match_c1_all, match_d2d_all,\
-                no_match_d2d_all, match_c2_ids_all, q_rjct_mks =\
-                match_cats.main(
-                    ra_qry, dec_qry, max_arcsec, ra_obs, dec_obs, query)
+                no_match_d2d_all, match_c2_ids_all, q_rjct_mks,\
+                mag_filter_data = match_cats.main(
+                    ra_qry, dec_qry, max_arcsec, ra_obs, dec_obs, query, m_obs,
+                    m_qry, max_mag_delta)
 
             # Store match and no match separations as 'Angle' objects.
             match_d2d_all, no_match_d2d_all = Angle(match_d2d_all * u.degree),\
@@ -72,7 +74,7 @@ def main():
                     m_obs[match_c1_ids_all], ra_obs[match_c1_ids_all],\
                     dec_obs[match_c1_ids_all]
 
-                # Unique magnitudes from queried catalog.
+                # Unique/rejected magnitudes from queried catalog.
                 m_unq_q = query[m_qry][match_c2_ids_all]
                 # Rejected magnitudes from queried catalog.
                 m_rjct_q = query[m_qry][q_rjct_mks]
@@ -87,13 +89,14 @@ def main():
                 m_rjct, ra_rjct, dec_rjct = m_obs[no_match_c1_all],\
                     ra_obs[no_match_c1_all], dec_obs[no_match_c1_all]
 
-                if match_c1_ids_all:
+                if match_c1_ids_all.any():
                     make_plots.main(
                         clust_name, m_qry, catalog, max_arcsec, m_obs,
                         m_obs_nam, ra_obs, dec_obs, query[m_qry],
                         query[ra_qry], query[dec_qry], m_unq, ra_unq, dec_unq,
                         m_unq_q, m_rjct_q, match_d2d_all, no_match_d2d_all,
-                        ra_unq_delta, dec_unq_delta, m_rjct, ra_rjct, dec_rjct)
+                        ra_unq_delta, dec_unq_delta, m_rjct, ra_rjct, dec_rjct,
+                        max_mag_delta, mag_filter_data)
                     print("Output figure created.")
                 else:
                     print("  ERROR: no matches to plot.")
@@ -130,6 +133,7 @@ def params_input():
                         float(reader[6])
                 if reader[0] == 'MA':
                     max_arcsec = float(reader[1])
+                    max_mag_delta = float(reader[2])
                 if reader[0] == 'FI':
                     out_fig = reader[1]
                 if reader[0] == 'OF':
@@ -137,7 +141,7 @@ def params_input():
                     out_cols = reader[2:]
 
     return data_mode, data_cols, cat_mode, catalog, m_qry, ra_qry, de_qry,\
-        box_s, max_arcsec, out_fig, out_format, out_cols
+        box_s, max_arcsec, max_mag_delta, out_fig, out_format, out_cols
 
 
 def get_files():

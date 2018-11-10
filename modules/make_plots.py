@@ -32,7 +32,7 @@ def main(
     clust_name, m_cat, catalog, max_arcsec, m_obs, m_obs_nam, ra_obs, dec_obs,
         m_qry, ra_qry, dec_qry, m_unq, ra_unq, dec_unq, m_unq_q, m_rjct_q,
         match_d2d_all, no_match_d2d_all, ra_unq_delta, dec_unq_delta, m_rjct,
-        ra_rjct, dec_rjct):
+        ra_rjct, dec_rjct, max_mag_delta, mag_filter_data):
     """
     Generate final plots.
     """
@@ -152,18 +152,31 @@ def main(
     m_obs_str = m_obs_nam if m_obs_nam is not None else 'm_{obs}'
 
     ax = plt.subplot(gs[6:12, 12:18])
-    ax.set_title("Matched magnitudes", fontsize=14)
+    ax.set_title(r"Matched magnitudes ($\delta_{{mag}}<{}$)".format(
+        max_mag_delta), fontsize=14)
     plt.xlabel(r'${}$'.format(m_obs_str), fontsize=18)
     plt.ylabel(r'${}$'.format(m_cat), fontsize=18)
     ax.minorticks_on()
     ax.grid(b=True, which='major', color='k', linestyle='--', lw=.5,
-            zorder=1)
-    plt.scatter(m_unq, m_unq_q, marker='o', c='b', s=20, lw=.5,
-                edgecolors='k', zorder=4)
-    xymin, xymax = min([np.min(m_unq), np.min(m_unq_q)]),\
-        max([np.max(m_unq), np.max(m_unq_q)])
-    plt.plot([-10000., 10000.], [-10000., 10000.], c='r', ls='--',
-             zorder=1)
+            zorder=0)
+    plt.scatter(m_unq, m_unq_q, marker='o', c='g', s=20, lw=.5,
+                edgecolors='k', zorder=1)
+    msk_in, fit, fit_l, fit_u, x_out, y_out = mag_filter_data
+
+    xymin = min([np.min(m_unq), np.min(m_unq_q), np.min(x_out), np.min(y_out)])
+    xymax = max([np.max(m_unq), np.max(m_unq_q), np.max(x_out), np.max(y_out)])
+
+    plt.scatter(x_out, y_out, c='r', edgecolors='k', s=10, lw=.2, zorder=1)
+    p_x = np.linspace(xymin, xymax, 10)
+    p_y = fit(p_x)
+    lower = fit_l(p_x)
+    upper = fit_u(p_x)
+    plt.plot(p_x, p_y, 'b--', zorder=4)
+    plt.plot(p_x, lower, 'r--', zorder=4)
+    plt.plot(p_x, upper, 'r--', zorder=4)
+
+    plt.plot([-10000., 10000.], [-10000., 10000.], c='k', ls='--',
+             zorder=4)
     plt.xlim(xymin, xymax)
     plt.ylim(xymin, xymax)
 

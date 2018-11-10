@@ -32,10 +32,14 @@ DC   num       3     4     5
 CA  query      I/345     Gmag   RAJ2000   DEJ2000      auto
 
 
-# Maximum separation to consider a match, in arcsecs.
+# Match filter parameters.
 #
-#    max_arcsec
-MA            5
+# * max_arcsec: Maximum separation in arcsecs.
+# * max_mag_delta: Maximum magnitude distance matched magnitudes to regression
+#                  line.
+#
+#    max_arcsec         max_mag_delta
+MA            5                     1
 
 
 # Create output figure?
