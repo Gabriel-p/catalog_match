@@ -136,7 +136,7 @@ def main(
     mag_filter_data = LinRegressionCI.main(
         m_obs[match_c1_ids_all], query[m_qry][match_c2_ids_all], max_mag_delta)
 
-    mag_msk = mag_filter_data[0].data
+    mag_msk = np.array(mag_filter_data[0])
     # Update not-matched arrays
     no_match_c1_all += list(np.array(match_c1_ids_all)[~mag_msk])
     no_match_d2d_all += list(np.array(match_d2d_all)[~mag_msk])
@@ -147,10 +147,6 @@ def main(
 
     print('Observed stars matched after mag filter:', len(match_c1_ids_all))
     print('Observed stars not matched after mag filter:', len(no_match_c1_all))
-
-    # # Add units.
-    # match_d2d_all = Angle(match_d2d_all * u.deg)
-    # no_match_d2d_all = Angle(no_match_d2d_all * u.deg)
 
     # Rejected magnitudes from queried catalog.
     q_rjct_mks = np.ones(len(query), dtype=bool)

@@ -34,6 +34,10 @@ def main(x, y, mag_lim=1.5):
     # Obtain the point-line distance for all (x,y) pairs.
     dist = abs(x * z0[0] + y * z0[1] + z0[2]) / np.sqrt(z0[0]**2 + z0[1]**2)
 
+    # Fill masked values with small mag distance value. These stars are kept,
+    # since there is no magnitude information to reject them.
+    dist = dist.filled(0.)
+
     # In-out mask.
     msk_in = dist <= mag_lim
     x_out, y_out = x[~msk_in], y[~msk_in]

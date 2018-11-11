@@ -22,7 +22,7 @@ def main():
     Observed catalog matcher.
     """
 
-    data_mode, data_cols, cat_mode, catalog, m_qry, ra_qry, dec_qry, box_s,\
+    data_mode, data_cols, cat_mode, catalog_n, m_qry, ra_qry, dec_qry, box_s,\
         max_arcsec, max_mag_delta, out_fig, out_format, out_cols =\
         params_input()
 
@@ -37,7 +37,7 @@ def main():
     for clust_file in cl_files:
 
         clust_name = clust_file.split('/')[1].split('.')[0]
-        print("\nProcessing: {}\n".format(clust_name))
+        print("\n\nProcessing: {}\n".format(clust_name))
 
         # Get input data from file.
         keep_going = True
@@ -54,7 +54,7 @@ def main():
             # Query catalog.
             query, catalog = read_input.cat_query(
                 clust_name, N_obs, ra_mid, dec_mid, dec_rang, box_s,
-                cat_mode, catalog)
+                cat_mode, catalog_n)
 
             # Match catalogs.
             match_c1_ids_all, no_match_c1_all, match_d2d_all,\
@@ -125,7 +125,7 @@ def params_input():
                     data_cols = reader[2:]
                 if reader[0] == 'CA':
                     cat_mode = reader[1]
-                    catalog = reader[2]
+                    catalog_n = reader[2]
                     m_qry = reader[3]
                     ra_qry = reader[4]
                     de_qry = reader[5]
@@ -140,7 +140,7 @@ def params_input():
                     out_format = reader[1]
                     out_cols = reader[2:]
 
-    return data_mode, data_cols, cat_mode, catalog, m_qry, ra_qry, de_qry,\
+    return data_mode, data_cols, cat_mode, catalog_n, m_qry, ra_qry, de_qry,\
         box_s, max_arcsec, max_mag_delta, out_fig, out_format, out_cols
 
 

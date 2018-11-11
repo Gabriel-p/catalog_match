@@ -103,8 +103,8 @@ def main(
     ax = plt.subplot(gs[0:6, 18:24])
     plt.xlim(min(ra_obs), max(ra_obs))
     plt.ylim(min(dec_obs), max(dec_obs))
-    ax.set_title("Observed stars with no match ({})".format(len(m_rjct)),
-                 fontsize=14)
+    ax.set_title("Observed stars with no match ({}; ~{:.0f}%)".format(
+        len(m_rjct), (100. * len(m_rjct)) / float(len(m_obs))), fontsize=14)
     plt.xlabel(r'$\alpha_{obs}$', fontsize=18)
     plt.ylabel(r'$\delta_{obs}$', fontsize=18)
     ax.minorticks_on()
@@ -161,10 +161,11 @@ def main(
     plt.scatter(m_unq, m_unq_q, marker='o', c='g', s=20, lw=.5,
                 edgecolors='k', zorder=1)
     msk_in, fit, fit_l, fit_u, x_out, y_out = mag_filter_data
-
-    xymin = min([np.min(m_unq), np.min(m_unq_q), np.min(x_out), np.min(y_out)])
-    xymax = max([np.max(m_unq), np.max(m_unq_q), np.max(x_out), np.max(y_out)])
-
+    oldmin, oldmax = 1000., 0.
+    for dd in (m_unq, m_unq_q, x_out, y_out):
+        if dd.any():
+            xymin = min(oldmin, np.min(dd))
+            xymax = max(oldmax, np.max(dd))
     plt.scatter(x_out, y_out, c='r', edgecolors='k', s=10, lw=.2, zorder=1)
     p_x = np.linspace(xymin, xymax, 10)
     p_y = fit(p_x)
@@ -194,21 +195,28 @@ def main(
     ax = plt.subplot(gs[12:15, 0:6])
     ax.set_title("Separation between stars (match<{:.1f} [arcsec])".format(
         max_arcsec), fontsize=14)
-    plt.xlabel(r'$d\,[arcsec]$', fontsize=18)
-    plt.ylabel(r'$N\;(norm)$', fontsize=18)
-    ax.hist(match_d2d_all.arcsec, color='green', bins=20, alpha=0.5,
-            density=True, label='Match ({})'.format(len(match_d2d_all)))
+    plt.xlabel(r'${}$'.format(m_obs_str), fontsize=18)
+    plt.ylabel(r'$d\,[arcsec]$', fontsize=18)
+    # ax.hist(match_d2d_all.arcsec, color='green', bins=20, alpha=0.5,
+    #         density=True, label='Match ({})'.format(len(match_d2d_all)))
     # Clip at [0, 60] arcsec
-    d2d_clip = np.clip(no_match_d2d_all.arcsec, 0., 60.)
-    ax.hist(d2d_clip, color='red', bins=20, alpha=0.5, density=True,
-            label='No match ({})'.format(len(d2d_clip)))
-    ax.axvline(max_arcsec, color='k', linestyle='--')
+    # d2d_clip = np.clip(no_match_d2d_all.arcsec, 0., 60.)
+    # ax.hist(d2d_clip, color='red', bins=20, alpha=0.5, density=True,
+    #         label='No match ({})'.format(len(d2d_clip)))
+    plt.scatter(
+        m_unq, match_d2d_all.arcsec, c='g',
+        label='Match ({})'.format(len(match_d2d_all)))
+    plt.scatter(
+        m_rjct, no_match_d2d_all.arcsec, c='r',
+        label='No match ({})'.format(len(no_match_d2d_all)))
+    ax.axhline(max_arcsec, color='k', linestyle='--')
     # Legend
     handles, labels = ax.get_legend_handles_labels()
-    leg = ax.legend(handles, labels, loc='upper right')
+    leg = ax.legend(handles, labels, loc='upper left')
     leg.get_frame().set_alpha(0.5)
-    nmd_mean, nmd_std = np.nanmedian(d2d_clip), np.nanstd(d2d_clip)
-    plt.xlim(-.2, nmd_mean + 2. * nmd_std)
+    # nmd_mean, nmd_std = np.nanmedian(d2d_clip), np.nanstd(d2d_clip)
+    # plt.xlim(-.2, nmd_mean + 2. * nmd_std)
+    plt.ylim(0., 4)#max_arcsec * 2)
 
     ax = plt.subplot(gs[12:15, 6:12])
     ax.set_title("Number of stars in different instances", fontsize=14)
