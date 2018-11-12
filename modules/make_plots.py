@@ -197,12 +197,6 @@ def main(
         max_arcsec), fontsize=14)
     plt.xlabel(r'${}$'.format(m_obs_str), fontsize=18)
     plt.ylabel(r'$d\,[arcsec]$', fontsize=18)
-    # ax.hist(match_d2d_all.arcsec, color='green', bins=20, alpha=0.5,
-    #         density=True, label='Match ({})'.format(len(match_d2d_all)))
-    # Clip at [0, 60] arcsec
-    # d2d_clip = np.clip(no_match_d2d_all.arcsec, 0., 60.)
-    # ax.hist(d2d_clip, color='red', bins=20, alpha=0.5, density=True,
-    #         label='No match ({})'.format(len(d2d_clip)))
     plt.scatter(
         m_unq, match_d2d_all.arcsec, c='g',
         label='Match ({})'.format(len(match_d2d_all)))
@@ -214,9 +208,7 @@ def main(
     handles, labels = ax.get_legend_handles_labels()
     leg = ax.legend(handles, labels, loc='upper left')
     leg.get_frame().set_alpha(0.5)
-    # nmd_mean, nmd_std = np.nanmedian(d2d_clip), np.nanstd(d2d_clip)
-    # plt.xlim(-.2, nmd_mean + 2. * nmd_std)
-    plt.ylim(0., 4)#max_arcsec * 2)
+    plt.ylim(0., max_arcsec * 2)
 
     ax = plt.subplot(gs[12:15, 6:12])
     ax.set_title("Number of stars in different instances", fontsize=14)
