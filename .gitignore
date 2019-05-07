@@ -95,3 +95,5 @@ ENV/
 *.txt
 !requirements.txt
 .condaauto
+output/*
+

@@ -198,12 +198,16 @@ def main(
     plt.xlabel(r'${}$'.format(m_obs_str), fontsize=18)
     plt.ylabel(r'$d\,[arcsec]$', fontsize=18)
     plt.scatter(
-        m_unq, match_d2d_all.arcsec, c='g',
+        m_unq, match_d2d_all.arcsec, c='g', edgecolors='w', lw=.5,
         label='Match ({})'.format(len(match_d2d_all)))
     plt.scatter(
-        m_rjct, no_match_d2d_all.arcsec, c='r',
+        m_rjct, no_match_d2d_all.arcsec, c='r', edgecolors='w', lw=.5,
         label='No match ({})'.format(len(no_match_d2d_all)))
     ax.axhline(max_arcsec, color='k', linestyle='--')
+    dmean = np.mean(match_d2d_all.arcsec)
+    ax.axhline(
+        dmean, color='orange', linestyle='--',
+        label="Mean={:.3f} arcsec".format(dmean))
     # Legend
     handles, labels = ax.get_legend_handles_labels()
     leg = ax.legend(handles, labels, loc='upper left')
@@ -211,6 +215,15 @@ def main(
     plt.ylim(0., max_arcsec * 2)
 
     ax = plt.subplot(gs[12:15, 6:12])
+    ax.set_title("Distance between matches", fontsize=14)
+    plt.hist(match_d2d_all.arcsec, bins=20, density=True)
+    # plt.hist(no_match_d2d_all.arcsec, bins=20, density=True)
+    plt.xlabel(r'$d\,[arcsec]$')
+    plt.ylabel('N (norm)')
+    ax.axvline(dmean, color='orange', linestyle='--')
+    ax.axvline(max_arcsec, color='k', linestyle='--')
+
+    ax = plt.subplot(gs[12:15, 12:18])
     ax.set_title("Number of stars in different instances", fontsize=14)
     ax.set_xlim(-0.2, 4.2)
     ax.grid(b=True, which='major', color='k', linestyle=':', lw=.5,
