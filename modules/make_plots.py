@@ -103,7 +103,7 @@ def main(
     ax = plt.subplot(gs[0:6, 18:24])
     plt.xlim(min(ra_obs), max(ra_obs))
     plt.ylim(min(dec_obs), max(dec_obs))
-    ax.set_title("Observed stars with no match ({}; ~{:.0f}%)".format(
+    ax.set_title("Observed stars with no match ({}; ~{:.1f}%)".format(
         len(m_rjct), (100. * len(m_rjct)) / float(len(m_obs))), fontsize=14)
     plt.xlabel(r'$\alpha_{obs}$', fontsize=18)
     plt.ylabel(r'$\delta_{obs}$', fontsize=18)
@@ -163,24 +163,29 @@ def main(
     ax.grid(b=True, which='major', color='k', linestyle='--', lw=.5,
             zorder=0)
     plt.scatter(m_unq, m_unq_q, marker='o', c='g', s=20, lw=.5,
-                edgecolors='k', zorder=1)
+                edgecolors='k', zorder=1, label="Matched stars")
     msk_in, fit, fit_l, fit_u, x_out, y_out = mag_filter_data
+    plt.scatter(
+        x_out, y_out, c='r', edgecolors='k', s=10, lw=.2, zorder=1,
+        label="Rejected matches")
     oldmin, oldmax = 1000., 0.
     for dd in (m_unq, m_unq_q, x_out, y_out):
         if dd.any():
             xymin = min(oldmin, np.min(dd))
             xymax = max(oldmax, np.max(dd))
-    plt.scatter(x_out, y_out, c='r', edgecolors='k', s=10, lw=.2, zorder=1)
+    if xymin == xymax:
+        xymin, xymax = ax.get_xlim()
     p_x = np.linspace(xymin, xymax, 10)
     p_y = fit(p_x)
     lower = fit_l(p_x)
     upper = fit_u(p_x)
-    plt.plot(p_x, p_y, 'b--', zorder=4)
-    plt.plot(p_x, lower, 'r--', zorder=4)
+    plt.plot(p_x, p_y, 'b--', zorder=4, label="Matches fit")
+    plt.plot(p_x, lower, 'r--', zorder=4, label="Magnitude limits")
     plt.plot(p_x, upper, 'r--', zorder=4)
-
-    plt.plot([-10000., 10000.], [-10000., 10000.], c='k', ls='--',
-             zorder=4)
+    plt.plot(
+        [xymin, xymax], [xymin, xymax], c='k', ls='--', zorder=4,
+        label="1:1 line")
+    plt.legend(fontsize=12)
     plt.xlim(xymin, xymax)
     plt.ylim(xymin, xymax)
 
@@ -188,12 +193,17 @@ def main(
     ax.set_title("Magnitudes for not matched stars", fontsize=14)
     plt.xlabel(
         r"${}\;$".format(m_obs_str) + r"$|\;{}$".format(m_cat), fontsize=18)
-    plt.ylabel(r'$N\;(norm)$', fontsize=18)
     ax.minorticks_on()
     ax.grid(b=True, which='major', color='k', linestyle='--', lw=.5,
             zorder=1)
-    plt.hist(m_rjct, bins=20, alpha=.5, density=True, label="Observed")
-    plt.hist(m_rjct_q, bins=20, alpha=.5, density=True, label="Queried")
+    if len(m_rjct) > 20 and len(m_rjct_q) > 20:
+        dens = True
+        plt.ylabel(r'$N\;(norm)$', fontsize=18)
+    else:
+        dens = False
+        plt.ylabel(r'$N$', fontsize=18)
+    plt.hist(m_rjct, bins=20, alpha=.5, density=dens, label="Observed")
+    plt.hist(m_rjct_q, bins=20, alpha=.5, density=dens, label="Queried")
     plt.legend()
 
     ax = plt.subplot(gs[12:15, 0:6])
