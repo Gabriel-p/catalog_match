@@ -22,7 +22,6 @@ def cat_match(ra_obs, dec_obs, ra_qry, dec_qry):
         # Define observed and queried catalogs.
         c1 = SkyCoord(ra_obs, dec_obs, unit=(u.degree, u.degree))
         c2 = SkyCoord(ra_qry, dec_qry, unit=(u.degree, u.degree))
-
         idx, d2d, d3d = c1.match_to_catalog_sky(c2)
 
     return idx, d2d.deg
@@ -81,6 +80,14 @@ def main(
     c1_ids = np.arange(len(ra_obs))
     c2_ids = np.arange(len(query))
     ra_q, dec_q = query[ra_qry][c2_ids], query[dec_qry][c2_ids]
+
+    # Values used to replace already matched stars. Use values far away from
+    # the frame's limits.
+    ra_max = max(ra_obs.max(), ra_q.max())
+    dec_max = max(dec_obs.max(), dec_q.max())
+    ra_offset = ra_max + .5 * ra_max
+    dec_offset = dec_max + .5 * dec_max
+
     # Store all unique matches, and observed stars with no match.
     match_c1_ids_all, match_c2_ids_all, no_match_c1_all, match_d2d_all,\
         no_match_d2d_all = [], [], [], [], []
@@ -125,8 +132,8 @@ def main(
             # To avoid messing with the indexes, change the coordinates
             # of already matched queried stars so that they can not
             # possibly be matched again.
-            ra_q[match_c2_ids_all] = np.nan
-            dec_q[match_c2_ids_all] = np.nan
+            ra_q[match_c2_ids_all] = ra_offset
+            dec_q[match_c2_ids_all] = dec_offset
 
     print('\nObserved stars matched:', len(match_c1_ids_all))
     print('Observed stars not matched:', len(no_match_c1_all))
