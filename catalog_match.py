@@ -119,6 +119,7 @@ def main():
             else:
                 logging.info("No output figure created.")
 
+            logging.info('\nCreating output files.')
             out_data.main(
                 clust_name, inp_data, cat_mode, ra_qry, dec_qry, query,
                 out_format, out_cols, match_c1_ids_all, match_c2_ids_all,
