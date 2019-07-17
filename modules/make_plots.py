@@ -6,6 +6,7 @@ from astropy.visualization import ZScaleInterval
 from matplotlib.colors import LinearSegmentedColormap
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import scipy.interpolate
+import logging
 
 
 def star_size(mag, zmin, zmax):
@@ -36,7 +37,7 @@ def main(
     """
     Generate final plots.
     """
-    print('\nCreating output plots.')
+    logging.info('\nCreating output plots.')
     # figsize(x1, y1), GridSpec(y2, x2) --> To have square plots: x1/x2 =
     # y1/y2 = 2.5
     fig = plt.figure(figsize=(40, 25))

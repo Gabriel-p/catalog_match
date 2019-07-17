@@ -4,6 +4,7 @@ from astropy.coordinates import SkyCoord
 from astropy.coordinates import Angle
 from astropy import units as u
 import warnings
+import logging
 from . import LinRegressionCI
 
 
@@ -72,7 +73,8 @@ def main(
     """
     Catalog matching module.
     """
-    print("\nMaximum match distance: {:.1f} [arcsec]".format(max_arcsec))
+    logging.info(
+        "\nMaximum match distance: {:.1f} [arcsec]".format(max_arcsec))
     # Maximum separation in arcsec, convert to decimal degrees.
     max_deg = Angle(max_arcsec * u.arcsec).deg
 
@@ -92,24 +94,24 @@ def main(
     match_c1_ids_all, match_c2_ids_all, no_match_c1_all, match_d2d_all,\
         no_match_d2d_all = [], [], [], [], []
     # Continue until no more duplicate matches exist.
-    print("\nMatching catalogs.")
+    logging.info("\nMatching catalogs.")
     j = 0
     while c1_ids.any():
 
-        print("\n  {}.".format(j + 1))
+        logging.info("\n  {}.".format(j + 1))
         j += 1
 
         # Match observed and queried catalogs.
         c2_ids_dup, c1c2_d2d = cat_match(
             ra_obs[c1_ids], dec_obs[c1_ids], ra_q, dec_q)
-        print("  Matched catalogs")
+        logging.info("  Matched catalogs")
 
         # Return unique ids for matched stars between catalogs, ids of
         # observed stars with no match found, and ids of observed stars
         # with a duplicated match that will be re-processed ('c1_ids').
         match_c1_ids, match_c2_ids, no_match_c1, c1_ids, match_d2d,\
             no_match_d2d = match_filter(c1_ids, c2_ids_dup, c1c2_d2d, max_deg)
-        print("  Unique stars filtered")
+        logging.info("  Unique stars filtered")
 
         # Store all unique solutions and no match solutions.
         match_c1_ids_all += match_c1_ids
@@ -118,28 +120,29 @@ def main(
         match_d2d_all += match_d2d
         no_match_d2d_all += no_match_d2d
 
-        print("  Unique matches:", len(match_c1_ids))
+        logging.info("  Unique matches: {}".format(len(match_c1_ids)))
         if match_d2d_all:
-            print("  Average match separation: {:.2f} arcsec".format(
+            logging.info("  Average match separation: {:.2f} arcsec".format(
                 np.mean(Angle(match_d2d_all * u.deg).arcsec)))
-        print("  No match:", len(no_match_c1))
-        print("  Re match:", len(c1_ids))
+        logging.info("  No match: {}".format(len(no_match_c1)))
+        logging.info("  Re match: {}".format(len(c1_ids)))
 
         if c1_ids.any():
             # Queried stars that were not matched to an observed star.
             c2_ids_r = np.setdiff1d(c2_ids, match_c2_ids_all)
-            print("  Queried stars for re-match:", len(c2_ids_r))
+            logging.info("  Queried stars for re-match: {}".format(
+                len(c2_ids_r)))
             # To avoid messing with the indexes, change the coordinates
             # of already matched queried stars so that they can not
             # possibly be matched again.
             ra_q[match_c2_ids_all] = ra_offset
             dec_q[match_c2_ids_all] = dec_offset
 
-    print('\nObserved stars matched:', len(match_c1_ids_all))
-    print('Observed stars not matched:', len(no_match_c1_all))
+    logging.info('\nObserved stars matched: {}'.format(len(match_c1_ids_all)))
+    logging.info('Observed stars not matched: {}'.format(len(no_match_c1_all)))
 
     # Magnitude filter to reject 'magnitude outliers'.
-    print("Magnitude delta filter (<{})".format(max_mag_delta))
+    logging.info("Magnitude delta filter (<{})".format(max_mag_delta))
     mag_filter_data = LinRegressionCI.main(
         m_obs[match_c1_ids_all], query[m_qry][match_c2_ids_all], max_mag_delta)
 
@@ -152,13 +155,17 @@ def main(
     match_d2d_all = np.array(match_d2d_all)[mag_msk]
     match_c2_ids_all = np.array(match_c2_ids_all)[mag_msk]
 
-    print('Observed stars matched after mag filter:', len(match_c1_ids_all))
-    print('Observed stars not matched after mag filter:', len(no_match_c1_all))
+    logging.info(
+        'Observed stars matched after mag filter: {}'.format(
+            len(match_c1_ids_all)))
+    logging.info(
+        'Observed stars not matched after mag filter: {}'.format(
+            len(no_match_c1_all)))
 
     # Rejected magnitudes from queried catalog.
     q_rjct_mks = np.ones(len(query), dtype=bool)
     q_rjct_mks[match_c2_ids_all] = False
-    print('Queried stars not matched:', sum(q_rjct_mks))
+    logging.info('Queried stars not matched: {}'.format(sum(q_rjct_mks)))
 
     return match_c1_ids_all, no_match_c1_all, match_d2d_all, no_match_d2d_all,\
         match_c2_ids_all, q_rjct_mks, mag_filter_data

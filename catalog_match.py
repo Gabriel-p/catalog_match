@@ -3,6 +3,7 @@ from os.path import exists
 from os import makedirs
 from os import listdir
 from os.path import isfile, join
+from pathlib import Path
 
 import numpy as np
 from astropy.coordinates import Angle
@@ -10,6 +11,8 @@ from astropy import units as u
 from astropy.io import ascii
 
 # from astroquery.xmatch import XMatch
+import logging
+import time
 
 from modules import read_input
 from modules import match_cats
@@ -34,11 +37,22 @@ def main():
     cl_files = get_files()
     if not cl_files:
         print("No input cluster files found")
+
+    mypath = Path().absolute()
     for clust_file in cl_files:
-
         clust_name = clust_file.split('/')[1].split('.')[0]
-        print("\n\nProcessing: {}\n".format(clust_name))
 
+        # Set up logging module
+        level = logging.INFO
+        frmt = '  %(message)s'
+        handlers = [
+            logging.FileHandler(
+                join(mypath, 'output', clust_name + '.log'), mode='w'),
+            logging.StreamHandler()]
+        logging.basicConfig(level=level, format=frmt, handlers=handlers)
+
+        logging.info(time.strftime("\n%Y-%m-%d, %H:%M"))
+        logging.info("\nProcessing: {}\n".format(clust_name))
         # Get input data from file.
         keep_going = True
         try:
@@ -46,7 +60,7 @@ def main():
                 dec_rang, m_obs_nam = read_input.in_data(
                     clust_file, data_mode, data_cols)
         except ascii.core.InconsistentTableError as err:
-            print("{}\n\nERROR: could not read data file {}".format(
+            logging.info("{}\n\nERROR: could not read data file {}".format(
                 err, clust_file))
             keep_going = False
 
@@ -97,18 +111,18 @@ def main():
                         m_unq_q, m_rjct_q, match_d2d_all, no_match_d2d_all,
                         ra_unq_delta, dec_unq_delta, m_rjct, ra_rjct, dec_rjct,
                         max_mag_delta, mag_filter_data)
-                    print("Output figure created.")
+                    logging.info("Output figure created.")
                 else:
-                    print("  ERROR: no matches to plot.")
+                    logging.info("  ERROR: no matches to plot.")
             else:
-                print("No output figure created.")
+                logging.info("No output figure created.")
 
             out_data.main(
                 clust_name, inp_data, cat_mode, ra_qry, dec_qry, query,
                 out_format, out_cols, match_c1_ids_all, match_c2_ids_all,
                 match_d2d_all, no_match_c1_all, no_match_d2d_all)
 
-    print("\nEnd.")
+    logging.info("\nEnd.")
 
 
 def params_input():

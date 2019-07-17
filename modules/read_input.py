@@ -4,6 +4,7 @@ from astroquery.vizier import Vizier
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 from astropy.io import ascii
+import logging
 
 
 def in_data(clust_file, data_mode, data_cols):
@@ -14,7 +15,7 @@ def in_data(clust_file, data_mode, data_cols):
     # of columns. Each of the N lists contains all the data for the column.
     # try:
     inp_data = ascii.read(
-        clust_file, #format='commented_header',
+        clust_file,  # format='commented_header',
         fill_values=[(ascii.masked, '99.999')])
     # except ascii.core.InconsistentTableError:
 
@@ -29,17 +30,19 @@ def in_data(clust_file, data_mode, data_cols):
             inp_data[dec_nam]
 
     N_obs = len(ra_obs)
-    print("N (all stars) = {}".format(N_obs))
+    logging.info("N (all stars) = {}".format(N_obs))
 
     ra_rang, dec_rang = max(ra_obs) - min(ra_obs),\
         max(dec_obs) - min(dec_obs)
     ra_mid, dec_mid = .5 * (min(ra_obs) + max(ra_obs)),\
         .5 * (max(dec_obs) + min(dec_obs))
 
-    print('ra (min, max): {:.4f}, {:.4f}'.format(min(ra_obs), max(ra_obs)))
-    print('dec (min, max): {:.4f}, {:.4f}'.format(min(dec_obs), max(dec_obs)))
-    print('Range (ra, dec): {:.4f}, {:.4f}'.format(ra_rang, dec_rang))
-    print('Centre (ra, dec): {:.4f}, {:.4f}'.format(ra_mid, dec_mid))
+    logging.info('ra (min, max): {:.4f}, {:.4f}'.format(
+        min(ra_obs), max(ra_obs)))
+    logging.info('dec (min, max): {:.4f}, {:.4f}'.format(
+        min(dec_obs), max(dec_obs)))
+    logging.info('Range (ra, dec): {:.4f}, {:.4f}'.format(ra_rang, dec_rang))
+    logging.info('Centre (ra, dec): {:.4f}, {:.4f}'.format(ra_mid, dec_mid))
 
     return inp_data, m_obs, ra_obs, dec_obs, N_obs, ra_mid, dec_mid, ra_rang,\
         dec_rang, m_obs_nam
@@ -53,17 +56,17 @@ def cat_query(
     """
 
     if cat_mode == 'query':
-        print("\nFetching data from {} catalog.".format(catalog))
+        logging.info("\nFetching data from {} catalog.".format(catalog))
         txt = 'queried'
         cent = SkyCoord(
             ra=ra_mid * u.degree, dec=dec_mid * u.degree, frame='icrs')
 
         if str(box_s) == 'auto':
             width = dec_rang * u.deg
-            print("Using auto width={:.3f}".format(width))
+            logging.info("Using auto width={:.3f}".format(width))
         else:
             width = box_s * u.deg
-            print("Using manual width={:.3f}".format(width))
+            logging.info("Using manual width={:.3f}".format(width))
 
         # Vizier query
         # Unlimited rows, all columns
@@ -83,21 +86,21 @@ def cat_query(
         #     cent, catalog=catalog, spatial='Box', width=ra_rang * u.deg)
 
         out_file = clust_name + '_query.dat'
-        print("Writing queried data to '{}' file.".format(out_file))
-        # TODO waiting for fix to https://github.com/astropy/astropy/issues/7744
+        logging.info("Writing queried data to '{}' file.".format(out_file))
+        # TODO waiting for fix to
+        # https://github.com/astropy/astropy/issues/7744
         ascii.write(
-            query, 'output/' + out_file, #format='csv',
-            overwrite=True)
+            query, 'output/' + out_file, overwrite=True)  # format='csv',
 
         catalog = "Queried catalog {}".format(catalog)
 
     elif cat_mode == 'read':
-        print("\nReading input catalog")
+        logging.info("\nReading input catalog")
         txt = 'read'
         q_file = 'input/' + clust_name + '_query.dat'
         query = ascii.read(q_file)
         catalog = "Read catalog {}".format(catalog)
 
-    print("N ({} catalog): {}".format(txt, len(query)))
+    logging.info("N ({} catalog): {}".format(txt, len(query)))
 
     return query, catalog
