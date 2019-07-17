@@ -44,7 +44,7 @@ def main():
 
         # Set up logging module
         level = logging.INFO
-        frmt = '  %(message)s'
+        frmt = ' %(message)s'
         handlers = [
             logging.FileHandler(
                 join(mypath, 'output', clust_name + '.log'), mode='w'),
@@ -52,7 +52,7 @@ def main():
         logging.basicConfig(level=level, format=frmt, handlers=handlers)
 
         logging.info(time.strftime("\n%Y-%m-%d, %H:%M"))
-        logging.info("\nProcessing: {}\n".format(clust_name))
+        logging.info("\nProcessing: {}".format(clust_name))
         # Get input data from file.
         keep_going = True
         try:
@@ -71,6 +71,7 @@ def main():
                 cat_mode, catalog_n)
 
             # Match catalogs.
+            logging.info("\nMatching catalogs...")
             match_c1_ids_all, no_match_c1_all, match_d2d_all,\
                 no_match_d2d_all, match_c2_ids_all, q_rjct_mks,\
                 mag_filter_data = match_cats.main(
@@ -104,6 +105,7 @@ def main():
                     ra_obs[no_match_c1_all], dec_obs[no_match_c1_all]
 
                 if match_c1_ids_all.any():
+                    logging.info('\nCreating output plots.')
                     make_plots.main(
                         clust_name, m_qry, catalog, max_arcsec, m_obs,
                         m_obs_nam, ra_obs, dec_obs, query[m_qry],

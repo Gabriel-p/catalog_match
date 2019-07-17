@@ -73,8 +73,7 @@ def main(
     """
     Catalog matching module.
     """
-    logging.info(
-        "\nMaximum match distance: {:.1f} [arcsec]".format(max_arcsec))
+    logging.info("Maximum match distance: {:.1f} [arcsec]".format(max_arcsec))
     # Maximum separation in arcsec, convert to decimal degrees.
     max_deg = Angle(max_arcsec * u.arcsec).deg
 
@@ -94,24 +93,23 @@ def main(
     match_c1_ids_all, match_c2_ids_all, no_match_c1_all, match_d2d_all,\
         no_match_d2d_all = [], [], [], [], []
     # Continue until no more duplicate matches exist.
-    logging.info("\nMatching catalogs.")
     j = 0
     while c1_ids.any():
-
-        logging.info("\n  {}.".format(j + 1))
         j += 1
 
         # Match observed and queried catalogs.
         c2_ids_dup, c1c2_d2d = cat_match(
             ra_obs[c1_ids], dec_obs[c1_ids], ra_q, dec_q)
-        logging.info("  Matched catalogs")
+
+        logging.info('')
+        logging.info("{}. Matched catalogs".format(j))
 
         # Return unique ids for matched stars between catalogs, ids of
         # observed stars with no match found, and ids of observed stars
         # with a duplicated match that will be re-processed ('c1_ids').
         match_c1_ids, match_c2_ids, no_match_c1, c1_ids, match_d2d,\
             no_match_d2d = match_filter(c1_ids, c2_ids_dup, c1c2_d2d, max_deg)
-        logging.info("  Unique stars filtered")
+        logging.info("Unique stars filtered")
 
         # Store all unique solutions and no match solutions.
         match_c1_ids_all += match_c1_ids
@@ -120,17 +118,17 @@ def main(
         match_d2d_all += match_d2d
         no_match_d2d_all += no_match_d2d
 
-        logging.info("  Unique matches: {}".format(len(match_c1_ids)))
+        logging.info("Unique matches: {}".format(len(match_c1_ids)))
         if match_d2d_all:
-            logging.info("  Average match separation: {:.2f} arcsec".format(
+            logging.info("Average match separation: {:.2f} arcsec".format(
                 np.mean(Angle(match_d2d_all * u.deg).arcsec)))
-        logging.info("  No match: {}".format(len(no_match_c1)))
-        logging.info("  Re match: {}".format(len(c1_ids)))
+        logging.info("No match: {}".format(len(no_match_c1)))
+        logging.info("Re match: {}".format(len(c1_ids)))
 
         if c1_ids.any():
             # Queried stars that were not matched to an observed star.
             c2_ids_r = np.setdiff1d(c2_ids, match_c2_ids_all)
-            logging.info("  Queried stars for re-match: {}".format(
+            logging.info("Queried stars for re-match: {}".format(
                 len(c2_ids_r)))
             # To avoid messing with the indexes, change the coordinates
             # of already matched queried stars so that they can not
@@ -138,7 +136,8 @@ def main(
             ra_q[match_c2_ids_all] = ra_offset
             dec_q[match_c2_ids_all] = dec_offset
 
-    logging.info('\nObserved stars matched: {}'.format(len(match_c1_ids_all)))
+    logging.info('')
+    logging.info('Observed stars matched: {}'.format(len(match_c1_ids_all)))
     logging.info('Observed stars not matched: {}'.format(len(no_match_c1_all)))
 
     # Magnitude filter to reject 'magnitude outliers'.
