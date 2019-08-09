@@ -84,10 +84,18 @@ def main(
 
     # Values used to replace already matched stars. Use values far away from
     # the frame's limits.
-    ra_max = max(ra_obs.max(), ra_q.max())
-    dec_max = max(dec_obs.max(), dec_q.max())
-    ra_offset = ra_max + .5 * ra_max
-    dec_offset = dec_max + .5 * dec_max
+    ra_max, ra_min = max(ra_obs.max(), ra_q.max()),\
+        min(ra_obs.min(), ra_q.min())
+    dec_max, dec_min = max(dec_obs.max(), dec_q.max()),\
+        min(dec_obs.min(), dec_q.min())
+    ra_rang, dec_rang = ra_max - ra_min, dec_max - dec_min
+    ra_offset = ra_max + ra_rang
+    dec_offset = dec_max + dec_rang
+    # Values outside the (-90., 90.) range will crash the code.
+    if dec_offset >= 90.:
+        dec_offset = 89.99
+    if dec_offset <= -90.:
+        dec_offset = -89.99
 
     # Store all unique matches, and observed stars with no match.
     match_c1_ids_all, match_c2_ids_all, no_match_c1_all, match_d2d_all,\

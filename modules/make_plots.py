@@ -6,7 +6,6 @@ from astropy.visualization import ZScaleInterval
 from matplotlib.colors import LinearSegmentedColormap
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import scipy.interpolate
-import logging
 
 
 def star_size(mag, zmin, zmax):
@@ -202,8 +201,12 @@ def main(
     else:
         dens = False
         plt.ylabel(r'$N$', fontsize=18)
-    plt.hist(m_rjct, bins=20, alpha=.5, density=dens, label="Observed")
-    plt.hist(m_rjct_q, bins=20, alpha=.5, density=dens, label="Queried")
+    plt.hist(
+        m_rjct, bins=20, alpha=.5, density=dens,
+        label="Observed (N={})".format(len(m_rjct)))
+    plt.hist(
+        m_rjct_q, bins=20, alpha=.5, density=dens,
+        label="Queried (N={})".format(len(m_rjct_q)))
     plt.legend()
 
     ax = plt.subplot(gs[12:15, 0:6])
