@@ -1,14 +1,12 @@
 
 from astropy.io import ascii
-from astropy.table import Column
-from astropy.table import hstack
+from astropy.table import Table, Column, hstack, vstack
 import logging
 
 
 def main(
-        clust_name, inp_data, cat_mode, ra_qry, de_qry, query, out_format,
-        out_cols, match_c1_ids_all, match_c2_ids_all, match_d2d_all,
-        no_match_c1_all, no_match_d2d_all):
+    clust_name, inp_data, cat_mode, ra_qry, de_qry, query, match_c1_ids_all,
+        match_c2_ids_all, match_d2d_all, no_match_c1_all, no_match_d2d_all):
     """
     Write output data to files.
     """
@@ -36,28 +34,36 @@ def main(
     f_match = 'output/' + clust_name + '_match.dat'
     f_no_match = 'output/' + clust_name + '_no_match.dat'
 
-    if out_format == 'all':
-        # Write matched stars to file.
-        # Combine input data with queried data for matched stars.
-        comb_dat = hstack([in_data_match, t_match_c2])
-        ascii.write(
-            comb_dat, output=f_match, overwrite=True,  # format='csv',
-            formats={'d_arcsec': '%.4f'})
-        logging.info("Data for all matched stars written to file.")
+    # DEPRECATE 'man' writing option (2019-08-13)
+    # if out_format == 'all':
+    # Write matched stars to file.
+    # Combine input data with queried data for matched stars.
+    comb_dat = hstack([in_data_match, t_match_c2])
+    # Extract names after merging (could have changed)
+    col_names = comb_dat.keys()[:len(in_data_match.keys())]
 
-    elif out_format == 'man':
-        in_data_match.add_column(t_match_c2[ra_qry])
-        in_data_match.add_column(t_match_c2[de_qry])
-        # Add selected columns.
-        for col in out_cols:
-            in_data_match.add_column(t_match_c2[col])
+    # Add *not* matched input data with proper column names.
+    in_data_no_match_r = Table(in_data_no_match, names=col_names)
+    # Combine with matched data.
+    comb_dat = vstack([comb_dat, in_data_no_match_r])
 
-        # Write matched stars to file.
-        ascii.write(
-            in_data_match, output=f_match, overwrite=True,  # format='csv',
-            formats={'d_arcsec': '%.4f'})
+    ascii.write(
+        comb_dat, output=f_match, overwrite=True,  # format='csv',
+        formats={'d_arcsec': '%.4f'})
+    logging.info("Data for all matched stars written to file.")
 
-        logging.info("Data for all matched stars written to file.")
+    # elif out_format == 'man':
+    #     in_data_match.add_column(t_match_c2[ra_qry])
+    #     in_data_match.add_column(t_match_c2[de_qry])
+    #     # Add selected columns.
+    #     for col in out_cols:
+    #         in_data_match.add_column(t_match_c2[col])
+
+    #     # Write matched stars to file.
+    #     ascii.write(
+    #         in_data_match, output=f_match, overwrite=True,  # format='csv',
+    #         formats={'d_arcsec': '%.4f'})
+    #     logging.info("Data for all matched stars written to file.")
 
     # Write *not* matched stars to file.
     ascii.write(

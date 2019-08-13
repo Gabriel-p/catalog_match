@@ -46,14 +46,3 @@ MA            5                     1
 #
 #     y/n
 FI      y
-
-
-# Output file format.
-#
-# * mode all / man
-#   - all: write all data available in queried catalog.
-#   - man: manually select which columns will be written, using the 'col_names'
-#          parameter. Write the name of each column separated by spaces.
-#
-#   mode  col_names
-OF   all        j_m

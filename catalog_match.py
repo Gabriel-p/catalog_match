@@ -26,8 +26,7 @@ def main():
     """
 
     data_mode, data_cols, cat_mode, catalog_n, m_qry, ra_qry, dec_qry, box_s,\
-        max_arcsec, max_mag_delta, out_fig, out_format, out_cols =\
-        params_input()
+        max_arcsec, max_mag_delta, out_fig = params_input()
 
     # Generate output dir if it doesn't exist.
     if not exists('output'):
@@ -122,8 +121,8 @@ def main():
             logging.info('\nCreating output files.')
             out_data.main(
                 clust_name, inp_data, cat_mode, ra_qry, dec_qry, query,
-                out_format, out_cols, match_c1_ids_all, match_c2_ids_all,
-                match_d2d_all, no_match_c1_all, no_match_d2d_all)
+                match_c1_ids_all, match_c2_ids_all, match_d2d_all,
+                no_match_c1_all, no_match_d2d_all)
 
     logging.info("\nEnd.")
 
@@ -153,12 +152,9 @@ def params_input():
                     max_mag_delta = float(reader[2])
                 if reader[0] == 'FI':
                     out_fig = reader[1]
-                if reader[0] == 'OF':
-                    out_format = reader[1]
-                    out_cols = reader[2:]
 
     return data_mode, data_cols, cat_mode, catalog_n, m_qry, ra_qry, de_qry,\
-        box_s, max_arcsec, max_mag_delta, out_fig, out_format, out_cols
+        box_s, max_arcsec, max_mag_delta, out_fig
 
 
 def get_files():
