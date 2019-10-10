@@ -88,10 +88,15 @@ def main():
                     m_obs[match_c1_ids_all], ra_obs[match_c1_ids_all],\
                     dec_obs[match_c1_ids_all]
 
-                # Unique/rejected magnitudes from queried catalog.
-                m_unq_q = query[m_qry][match_c2_ids_all]
-                # Rejected magnitudes from queried catalog.
-                m_rjct_q = query[m_qry][q_rjct_mks]
+                if m_qry is not None:
+                    query_mag = query[m_qry]
+                    # Unique/rejected magnitudes from queried catalog.
+                    m_unq_q = query_mag[match_c2_ids_all]
+                    # Rejected magnitudes from queried catalog.
+                    m_rjct_q = query_mag[q_rjct_mks]
+                else:
+                    query_mag = [1. for _ in range(len(query))]
+                    m_unq_q, m_rjct_q = [], [_ for _ in range(sum(q_rjct_mks))]
 
                 # Differences in matched coordinates.
                 ra_unq_delta, dec_unq_delta =\
@@ -107,7 +112,7 @@ def main():
                     logging.info('\nCreating output plots.')
                     make_plots.main(
                         clust_name, m_qry, catalog, max_arcsec, m_obs,
-                        m_obs_nam, ra_obs, dec_obs, query[m_qry],
+                        m_obs_nam, ra_obs, dec_obs, query_mag,
                         query[ra_qry], query[dec_qry], m_unq, ra_unq, dec_unq,
                         m_unq_q, m_rjct_q, match_d2d_all, no_match_d2d_all,
                         ra_unq_delta, dec_unq_delta, m_rjct, ra_rjct, dec_rjct,
@@ -131,6 +136,7 @@ def params_input():
     """
     Read input parameters from 'params_input.dat' file.
     """
+    nn_lst = ('n', 'N', 'none', 'None', 'NONE')
     with open('params_input.dat', "r") as f_dat:
         # Iterate through each line in the file.
         for l, line in enumerate(f_dat):
@@ -142,7 +148,7 @@ def params_input():
                 if reader[0] == 'CA':
                     cat_mode = reader[1]
                     catalog_n = reader[2]
-                    m_qry = reader[3]
+                    m_qry = None if reader[3] in nn_lst else reader[3]
                     ra_qry = reader[4]
                     de_qry = reader[5]
                     box_s = reader[6] if reader[6] == 'auto' else\

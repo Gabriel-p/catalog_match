@@ -148,10 +148,14 @@ def main(
     logging.info('Observed stars matched: {}'.format(len(match_c1_ids_all)))
     logging.info('Observed stars not matched: {}'.format(len(no_match_c1_all)))
 
-    # Magnitude filter to reject 'magnitude outliers'.
-    logging.info("Magnitude delta filter (<{})".format(max_mag_delta))
-    mag_filter_data = LinRegressionCI.main(
-        m_obs[match_c1_ids_all], query[m_qry][match_c2_ids_all], max_mag_delta)
+    if m_qry is not None:
+        # Magnitude filter to reject 'magnitude outliers'.
+        logging.info("Magnitude delta filter (<{})".format(max_mag_delta))
+        mag_filter_data = LinRegressionCI.main(
+            m_obs[match_c1_ids_all], query[m_qry][match_c2_ids_all],
+            max_mag_delta)
+    else:
+        mag_filter_data = [[True for _ in range(len(match_c1_ids_all))]]
 
     mag_msk = np.array(mag_filter_data[0])
     # Update not-matched arrays

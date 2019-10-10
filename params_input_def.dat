@@ -21,7 +21,8 @@ DC   num       3     4     5
 #            file. In this case, the 'cat_name' parameter is not used.
 # * cat_name: if mode=query, name of the catalog to query.
 #             If mode=read, it is only used in the final plot.
-# * m_qry   : any magnitude column in this catalog.
+# * m_qry   : any magnitude column in this catalog. If the catalog contains
+#             no magnitude, use 'none'.
 # * ra_qry  : name of the ra coordinate column in this catalog.
 # * dec_qry : name of the dec coordinate column in this catalog.
 # * box_s   : auto | [float]. Box size of query. If 'auto', the input frame's

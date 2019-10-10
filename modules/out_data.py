@@ -19,16 +19,33 @@ def main(
     # Filter matched observed stars only.
     in_data_match = inp_data[match_c1_ids_all]
     # Generate column with separation data and add it to the table.
-    d2d_match = Column(match_d2d_all.arcsec, name='d_arcsec')
-    in_data_match.add_column(d2d_match)
+    i, s = 0, ''
+    while True:
+        col_name = 'd_arcsec' + s
+        try:
+            d2d_match = Column(match_d2d_all.arcsec, name=col_name)
+            in_data_match.add_column(d2d_match)
+            break
+        except ValueError:
+            i += 1
+            s = str(i)
+
     # Define table using only matched stars from queried catalog.
     t_match_c2 = query[match_c2_ids_all]
 
     # Filter *not* matched observed stars only.
     in_data_no_match = inp_data[no_match_c1_all]
     # Generate column with separation data and add it to the table.
-    d2d_no_match = Column(no_match_d2d_all.arcsec, name='d_arcsec')
-    in_data_no_match.add_column(d2d_no_match)
+    i, s = 0, ''
+    while True:
+        col_name = 'd_arcsec' + s
+        try:
+            d2d_no_match = Column(no_match_d2d_all.arcsec, name=col_name)
+            in_data_no_match.add_column(d2d_no_match)
+            break
+        except ValueError:
+            i += 1
+            s = str(i)
 
     # Output data file name for matched and not matched stars.
     f_match = 'output/' + clust_name + '_match.dat'

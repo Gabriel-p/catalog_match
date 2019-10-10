@@ -29,8 +29,8 @@ def reject_outliers(data, m=2.):
 
 
 def main(
-    clust_name, m_cat, catalog, max_arcsec, m_obs, m_obs_nam, ra_obs, dec_obs,
-        m_qry, ra_qry, dec_qry, m_unq, ra_unq, dec_unq, m_unq_q, m_rjct_q,
+    clust_name, m_qry, catalog, max_arcsec, m_obs, m_obs_nam, ra_obs, dec_obs,
+        query_mag, ra_qry, dec_qry, m_unq, ra_unq, dec_unq, m_unq_q, m_rjct_q,
         match_d2d_all, no_match_d2d_all, ra_unq_delta, dec_unq_delta, m_rjct,
         ra_rjct, dec_rjct, max_mag_delta, mag_filter_data):
     """
@@ -49,11 +49,11 @@ def main(
     except AttributeError:
         zmin_obs, zmax_obs = interval.get_limits(m_obs)
     try:
-        zmin_qry, zmax_qry = interval.get_limits(m_qry[~m_qry.mask])
-        m_qry.fill_value = np.nanmax(m_qry)
-        m_qry = m_qry.filled()
+        zmin_qry, zmax_qry = interval.get_limits(query_mag[~query_mag.mask])
+        query_mag.fill_value = np.nanmax(query_mag)
+        query_mag = query_mag.filled()
     except AttributeError:
-        zmin_qry, zmax_qry = interval.get_limits(m_qry)
+        zmin_qry, zmax_qry = interval.get_limits(query_mag)
 
     ax = plt.subplot(gs[0:6, 0:6])
     plt.xlim(min(ra_obs), max(ra_obs))
@@ -73,13 +73,13 @@ def main(
     ax = plt.subplot(gs[0:6, 6:12])
     plt.xlim(min(ra_qry), max(ra_qry))
     plt.ylim(min(dec_qry), max(dec_qry))
-    ax.set_title("{} ({})".format(catalog, len(m_qry)), fontsize=14)
+    ax.set_title("{} ({})".format(catalog, len(query_mag)), fontsize=14)
     plt.xlabel(r'$\alpha_{queried}$', fontsize=18)
     plt.ylabel(r'$\delta_{queried}$', fontsize=18)
     ax.minorticks_on()
     ax.grid(b=True, which='major', color='gray', linestyle='-', lw=.5,
             zorder=1)
-    st_sizes_arr = star_size(m_qry, zmin_qry, zmax_qry)
+    st_sizes_arr = star_size(query_mag, zmin_qry, zmax_qry)
     plt.scatter(ra_qry, dec_qry, marker='o', c='k', s=st_sizes_arr,
                 zorder=4)
     ax.invert_xaxis()
@@ -153,61 +153,63 @@ def main(
 
     m_obs_str = m_obs_nam if m_obs_nam is not None else 'm_{obs}'
 
-    ax = plt.subplot(gs[6:12, 12:18])
-    ax.set_title(r"Matched magnitudes ($\delta_{{mag}}<{}$)".format(
-        max_mag_delta), fontsize=14)
-    plt.xlabel(r'${}$'.format(m_obs_str), fontsize=18)
-    plt.ylabel(r'${}$'.format(m_cat), fontsize=18)
-    ax.minorticks_on()
-    ax.grid(b=True, which='major', color='k', linestyle='--', lw=.5,
-            zorder=0)
-    plt.scatter(m_unq, m_unq_q, marker='o', c='g', s=20, lw=.5,
-                edgecolors='k', zorder=1, label="Matched stars")
-    msk_in, fit, fit_l, fit_u, x_out, y_out = mag_filter_data
-    plt.scatter(
-        x_out, y_out, c='r', edgecolors='k', s=10, lw=.2, zorder=1,
-        label="Rejected matches")
-    oldmin, oldmax = 1000., 0.
-    for dd in (m_unq, m_unq_q, x_out, y_out):
-        if dd.any():
-            xymin = min(oldmin, np.min(dd))
-            xymax = max(oldmax, np.max(dd))
-    if xymin == xymax:
-        xymin, xymax = ax.get_xlim()
-    p_x = np.linspace(xymin, xymax, 10)
-    p_y = fit(p_x)
-    lower = fit_l(p_x)
-    upper = fit_u(p_x)
-    plt.plot(p_x, p_y, 'b--', zorder=4, label="Matches fit")
-    plt.plot(p_x, lower, 'r--', zorder=4, label="Magnitude limits")
-    plt.plot(p_x, upper, 'r--', zorder=4)
-    plt.plot(
-        [xymin, xymax], [xymin, xymax], c='k', ls='--', zorder=4,
-        label="1:1 line")
-    plt.legend(fontsize=12)
-    plt.xlim(xymin, xymax)
-    plt.ylim(xymin, xymax)
+    if m_qry is not None:
+        ax = plt.subplot(gs[6:12, 12:18])
+        ax.set_title(r"Matched magnitudes ($\delta_{{mag}}<{}$)".format(
+            max_mag_delta), fontsize=14)
+        plt.xlabel(r'${}$'.format(m_obs_str), fontsize=18)
+        plt.ylabel(r'${}$'.format(m_qry), fontsize=18)
+        ax.minorticks_on()
+        ax.grid(b=True, which='major', color='k', linestyle='--', lw=.5,
+                zorder=0)
+        plt.scatter(m_unq, m_unq_q, marker='o', c='g', s=20, lw=.5,
+                    edgecolors='k', zorder=1, label="Matched stars")
+        msk_in, fit, fit_l, fit_u, x_out, y_out = mag_filter_data
+        plt.scatter(
+            x_out, y_out, c='r', edgecolors='k', s=10, lw=.2, zorder=1,
+            label="Rejected matches")
+        oldmin, oldmax = 1000., 0.
+        for dd in (m_unq, m_unq_q, x_out, y_out):
+            if dd.any():
+                xymin = min(oldmin, np.min(dd))
+                xymax = max(oldmax, np.max(dd))
+        if xymin == xymax:
+            xymin, xymax = ax.get_xlim()
+        p_x = np.linspace(xymin, xymax, 10)
+        p_y = fit(p_x)
+        lower = fit_l(p_x)
+        upper = fit_u(p_x)
+        plt.plot(p_x, p_y, 'b--', zorder=4, label="Matches fit")
+        plt.plot(p_x, lower, 'r--', zorder=4, label="Magnitude limits")
+        plt.plot(p_x, upper, 'r--', zorder=4)
+        plt.plot(
+            [xymin, xymax], [xymin, xymax], c='k', ls='--', zorder=4,
+            label="1:1 line")
+        plt.legend(fontsize=12)
+        plt.xlim(xymin, xymax)
+        plt.ylim(xymin, xymax)
 
-    ax = plt.subplot(gs[6:12, 18:24])
-    ax.set_title("Magnitudes for not matched stars", fontsize=14)
-    plt.xlabel(
-        r"${}\;$".format(m_obs_str) + r"$|\;{}$".format(m_cat), fontsize=18)
-    ax.minorticks_on()
-    ax.grid(b=True, which='major', color='k', linestyle='--', lw=.5,
-            zorder=1)
-    if len(m_rjct) > 20 and len(m_rjct_q) > 20:
-        dens = True
-        plt.ylabel(r'$N\;(norm)$', fontsize=18)
-    else:
-        dens = False
-        plt.ylabel(r'$N$', fontsize=18)
-    plt.hist(
-        m_rjct, bins=20, alpha=.5, density=dens,
-        label="Observed (N={})".format(len(m_rjct)))
-    plt.hist(
-        m_rjct_q, bins=20, alpha=.5, density=dens,
-        label="Queried (N={})".format(len(m_rjct_q)))
-    plt.legend()
+        ax = plt.subplot(gs[6:12, 18:24])
+        ax.set_title("Magnitudes for not matched stars", fontsize=14)
+        plt.xlabel(
+            r"${}\;$".format(m_obs_str) + r"$|\;{}$".format(m_qry),
+            fontsize=18)
+        ax.minorticks_on()
+        ax.grid(b=True, which='major', color='k', linestyle='--', lw=.5,
+                zorder=1)
+        if len(m_rjct) > 20 and len(m_rjct_q) > 20:
+            dens = True
+            plt.ylabel(r'$N\;(norm)$', fontsize=18)
+        else:
+            dens = False
+            plt.ylabel(r'$N$', fontsize=18)
+        plt.hist(
+            m_rjct, bins=20, alpha=.5, density=dens,
+            label="Observed (N={})".format(len(m_rjct)))
+        plt.hist(
+            m_rjct_q, bins=20, alpha=.5, density=dens,
+            label="Queried (N={})".format(len(m_rjct_q)))
+        plt.legend()
 
     ax = plt.subplot(gs[12:15, 0:6])
     ax.set_title("Separation between stars (match<{:.1f} [arcsec])".format(
@@ -247,7 +249,7 @@ def main(
             zorder=1)
     x = np.arange(5)
     y = np.array(
-        [len(m_obs), len(m_qry), len(m_unq), len(m_rjct), len(m_rjct_q)])
+        [len(m_obs), len(query_mag), len(m_unq), len(m_rjct), len(m_rjct_q)])
     up = max(y) * .03
     ax.set_ylim(0, max(y) + 4 * up)
     barlst = ax.bar(x, y, align='center', width=0.2, color='g', zorder=4)
