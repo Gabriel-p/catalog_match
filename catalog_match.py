@@ -51,7 +51,7 @@ def main():
         logging.basicConfig(level=level, format=frmt, handlers=handlers)
 
         logging.info(time.strftime("\n%Y-%m-%d, %H:%M"))
-        logging.info("\nProcessing: {}".format(clust_name))
+        logging.info("\nProcessing: {}\n".format(clust_name))
         # Get input data from file.
         keep_going = True
         try:

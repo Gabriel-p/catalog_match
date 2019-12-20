@@ -4,15 +4,16 @@ import matplotlib.pyplot as plt
 
 
 def main(x, y, mag_lim=1.5):
-    '''
+    """
     Predicts the values for a best fit between arrays x and y, defines
-    outlier band around this fit line.
-    '''
+    outlier bands around this fit line.
+    """
 
     # To prevent stars in the lower magnitude limit from biasing the fit,
     # we bin the magnitude range and estimate the fit using the median of
     # each range.
-    bins = np.linspace(x.min(), x.max(), 10)
+    xymin, xymax = max(x.min(), y.min()), min(x.max(), y.max())
+    bins = np.linspace(xymin, xymax, 10)
     a1 = np.array(list(zip(*[bins[0::2], bins[1::2]])))
     a2 = np.array(list(zip(*[bins[1::2], bins[2::2]])))
     bb = [item for t in zip(a1, a2) for item in t]
@@ -24,6 +25,10 @@ def main(x, y, mag_lim=1.5):
             xy_mean.append(medians)
 
     xm, ym = np.array(xy_mean).T
+    if xm.size < 2:
+        msk = ~np.isnan(np.array(x)) & ~np.isnan(np.array(y))
+        xm, ym = x[msk], y[msk]
+
     z = np.polyfit(xm, ym, 1)
     fit = np.poly1d(z)
 
