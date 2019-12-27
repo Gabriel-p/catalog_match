@@ -171,8 +171,9 @@ def main(
         oldmin, oldmax = 1000., 0.
         for dd in (m_unq, m_unq_q, x_out, y_out):
             if dd.any():
-                xymin = min(oldmin, np.min(dd))
-                xymax = max(oldmax, np.max(dd))
+                oldmin = min(oldmin, np.min(dd))
+                oldmax = max(oldmax, np.max(dd))
+        xymin, xymax = oldmin, oldmax
         if xymin == xymax:
             xymin, xymax = ax.get_xlim()
         p_x = np.linspace(xymin, xymax, 10)
