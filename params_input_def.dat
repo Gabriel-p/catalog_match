@@ -1,5 +1,6 @@
 
-# Data columns input.
+# Data columns input. If 'nam' mode is used, a '\_' can be used if
+# the column name contains a space.
 #
 # * mode: num / nam
 #   - num: give the *indexes* of the data columns, starting at zero.

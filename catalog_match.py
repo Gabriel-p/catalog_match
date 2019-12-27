@@ -144,7 +144,7 @@ def params_input():
                 reader = line.split()
                 if reader[0] == 'DC':
                     data_mode = reader[1]
-                    data_cols = reader[2:]
+                    data_cols = [_.replace('\_', ' ') for _ in reader[2:]]
                 if reader[0] == 'CA':
                     cat_mode = reader[1]
                     catalog_n = reader[2]

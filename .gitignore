@@ -91,6 +91,7 @@ ENV/
 *.png
 !out.png
 *.dat
+*.csv
 !params_input_def.dat
 *.txt
 !requirements.txt
