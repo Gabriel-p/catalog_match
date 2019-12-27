@@ -204,10 +204,10 @@ def main(
             dens = False
             plt.ylabel(r'$N$', fontsize=18)
         plt.hist(
-            m_rjct, bins=20, alpha=.5, density=dens,
+            np.array(m_rjct), bins=20, alpha=.5, density=dens,
             label="Observed (N={})".format(len(m_rjct)))
         plt.hist(
-            m_rjct_q, bins=20, alpha=.5, density=dens,
+            np.array(m_rjct_q), bins=20, alpha=.5, density=dens,
             label="Queried (N={})".format(len(m_rjct_q)))
         plt.legend()
 

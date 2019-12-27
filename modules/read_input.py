@@ -8,15 +8,15 @@ import logging
 
 
 def in_data(clust_file, data_mode, data_cols):
-    '''
+    """
     Read the file that stores the photometric data for all stars.
-    '''
+    """
     # Loads the data in 'clust_file' as a list of N lists where N is the number
     # of columns. Each of the N lists contains all the data for the column.
     # try:
     inp_data = ascii.read(
         clust_file,  # format='commented_header',
-        fill_values=[(ascii.masked, '99.999')])
+        fill_values=[('', '0'), ('NA', '0'), ('INDEF', '0')])
     # except ascii.core.InconsistentTableError:
 
     if data_mode == 'num':
