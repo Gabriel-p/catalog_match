@@ -3,14 +3,15 @@
 # the column name contains a space.
 #
 # * mode: num / nam
-#   - num: give the *indexes* of the data columns, starting at zero.
-#   - nam: give the *names* of the data columns as stored in the input file.
-# * m_obs: index/name of the observed magnitude column.
-# * ra:    index/name of the ra coordinate column.
-# * dec:   index/name of the dec coordinate column.
+#   - num  : give the *indexes* of the data columns, starting at zero.
+#   - nam  : give the *names* of the data columns as stored in the input file.
+# * m_obs  : index/name of the observed magnitude column.
+# * ra     : index/name of the ra coordinate column.
+# * dec    : index/name of the dec coordinate column.
+# * ra_hour: flag indicating if the RA column is in 'hour' units.
 #
-#   mode   m_obs    ra   dec
-DC   num       3     4     5
+#   mode   m_obs    ra   dec  hour
+DC   num       3     4     5    n
 
 
 # Working mode.

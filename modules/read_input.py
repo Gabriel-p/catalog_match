@@ -7,7 +7,7 @@ from astropy.io import ascii
 import logging
 
 
-def in_data(clust_file, data_mode, data_cols):
+def in_data(clust_file, data_mode, data_cols, ra_hour):
     """
     Read the file that stores the photometric data for all stars.
     """
@@ -28,6 +28,10 @@ def in_data(clust_file, data_mode, data_cols):
         m_obs_nam, ra_nam, dec_nam = data_cols
         m_obs, ra_obs, dec_obs = inp_data[m_obs_nam], inp_data[ra_nam],\
             inp_data[dec_nam]
+
+    # Convert RA coordinates from hours to degrees
+    if ra_hour is True:
+        ra_obs = ra_obs * u.hourangle.to(u.deg)
 
     N_obs = len(ra_obs)
     logging.info("N (all stars) = {}".format(N_obs))
@@ -54,7 +58,6 @@ def cat_query(
     """
     Query selected catalog or read from file a previous stored version.
     """
-
     if cat_mode == 'query':
         logging.info("\nFetching data from {} catalog.".format(catalog))
         txt = 'queried'

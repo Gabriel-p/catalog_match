@@ -25,8 +25,8 @@ def main():
     Observed catalog matcher.
     """
 
-    data_mode, data_cols, cat_mode, catalog_n, m_qry, ra_qry, dec_qry, box_s,\
-        max_arcsec, max_mag_delta, out_fig = params_input()
+    data_mode, data_cols, ra_hour, cat_mode, catalog_n, m_qry, ra_qry,\
+        dec_qry, box_s, max_arcsec, max_mag_delta, out_fig = params_input()
 
     # Generate output dir if it doesn't exist.
     if not exists('output'):
@@ -57,7 +57,7 @@ def main():
         try:
             inp_data, m_obs, ra_obs, dec_obs, N_obs, ra_mid, dec_mid, ra_rang,\
                 dec_rang, m_obs_nam = read_input.in_data(
-                    clust_file, data_mode, data_cols)
+                    clust_file, data_mode, data_cols, ra_hour)
         except ascii.core.InconsistentTableError as err:
             logging.info("{}\n\nERROR: could not read data file {}".format(
                 err, clust_file))
@@ -129,6 +129,8 @@ def main():
                 match_c1_ids_all, match_c2_ids_all, match_d2d_all,
                 no_match_c1_all, no_match_d2d_all)
 
+            logging.info("\nProcessed {}".format(clust_name))
+
     logging.info("\nEnd.")
 
 
@@ -144,7 +146,9 @@ def params_input():
                 reader = line.split()
                 if reader[0] == 'DC':
                     data_mode = reader[1]
-                    data_cols = [_.replace('\_', ' ') for _ in reader[2:]]
+                    data_cols = [_.replace('\_', ' ') for _ in reader[2:-1]]
+                    ra_hour = reader[-1]
+                    ra_hour = True if ra_hour in ('y', 'Y', 'True') else False
                 if reader[0] == 'CA':
                     cat_mode = reader[1]
                     catalog_n = reader[2]
@@ -159,8 +163,8 @@ def params_input():
                 if reader[0] == 'FI':
                     out_fig = reader[1]
 
-    return data_mode, data_cols, cat_mode, catalog_n, m_qry, ra_qry, de_qry,\
-        box_s, max_arcsec, max_mag_delta, out_fig
+    return data_mode, data_cols, ra_hour, cat_mode, catalog_n, m_qry, ra_qry,\
+        de_qry, box_s, max_arcsec, max_mag_delta, out_fig
 
 
 def get_files():
