@@ -41,7 +41,11 @@ def main(x, y, mag_lim=1.5):
 
     # Fill masked values with small mag distance value. These stars are kept,
     # since there is no magnitude information to reject them.
-    dist = dist.filled(0.)
+    try:
+        dist = dist.filled(0.)
+    except AttributeError:
+        # No masked elements in column
+        pass
 
     # In-out mask.
     msk_in = dist <= mag_lim
