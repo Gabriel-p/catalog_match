@@ -3,7 +3,6 @@ import numpy as np
 from astropy.coordinates import SkyCoord
 from astropy.coordinates import Angle
 from astropy import units as u
-import warnings
 import logging
 from . import LinRegressionCI
 
@@ -16,14 +15,17 @@ def cat_match(ra_obs, dec_obs, ra_qry, dec_qry):
     d2d are the on-sky distances between them,
     d3d are the 3-dimensional distances
     """
-    # Catch 'RuntimeWarning' issued because we are inserting 'nan' values
-    # into the queried coordinates.
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        # Define observed and queried catalogs.
-        c1 = SkyCoord(ra_obs, dec_obs, unit=(u.degree, u.degree))
-        c2 = SkyCoord(ra_qry, dec_qry, unit=(u.degree, u.degree))
-        idx, d2d, d3d = c1.match_to_catalog_sky(c2)
+
+    # DEPRECATED 15/11/20
+    # # Catch 'RuntimeWarning' issued because we are inserting 'nan' values
+    # # into the queried coordinates.
+    # with warnings.catch_warnings():
+    #     warnings.simplefilter("ignore")
+
+    # Define observed and queried catalogs.
+    c1 = SkyCoord(ra_obs, dec_obs, unit=(u.degree, u.degree))
+    c2 = SkyCoord(ra_qry, dec_qry, unit=(u.degree, u.degree))
+    idx, d2d, d3d = c1.match_to_catalog_sky(c2)
 
     return idx, d2d.deg
 
