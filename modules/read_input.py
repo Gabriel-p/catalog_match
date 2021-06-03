@@ -1,4 +1,5 @@
 
+import numpy as np
 from astroquery.vizier import Vizier
 # from astroquery.irsa import Irsa
 from astropy.coordinates import SkyCoord
@@ -36,10 +37,10 @@ def in_data(clust_file, data_mode, data_cols, ra_hour):
     N_obs = len(ra_obs)
     logging.info("N (all stars) = {}".format(N_obs))
 
-    ra_rang, dec_rang = max(ra_obs) - min(ra_obs),\
-        max(dec_obs) - min(dec_obs)
     ra_mid, dec_mid = .5 * (min(ra_obs) + max(ra_obs)),\
         .5 * (max(dec_obs) + min(dec_obs))
+    ra_rang = (max(ra_obs) - min(ra_obs)) * np.cos(np.deg2rad(dec_mid))
+    dec_rang = max(dec_obs) - min(dec_obs)
 
     logging.info('ra (min, max): {:.4f}, {:.4f}'.format(
         min(ra_obs), max(ra_obs)))
