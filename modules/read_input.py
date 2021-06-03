@@ -66,7 +66,9 @@ def cat_query(
             ra=ra_mid * u.degree, dec=dec_mid * u.degree, frame='icrs')
 
         if str(box_s) == 'auto':
-            width = max(ra_rang, dec_rang) * u.deg
+            width = max(ra_rang, dec_rang)
+            width = width + width * .05
+            width = width * u.deg
             logging.info("Using auto width={:.3f}".format(width))
         else:
             width = box_s * u.deg
