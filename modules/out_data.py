@@ -49,7 +49,7 @@ def main(
 
     # Output data file name for matched and not matched stars.
     f_match = 'output/' + clust_name + '_match.dat'
-    f_no_match = 'output/' + clust_name + '_no_match.dat'
+    # f_no_match = 'output/' + clust_name + '_no_match.dat'
 
     # DEPRECATE 'man' writing option (2019-08-13)
     # if out_format == 'all':
