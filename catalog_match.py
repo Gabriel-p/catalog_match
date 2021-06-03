@@ -66,7 +66,7 @@ def main():
         if keep_going is True:
             # Query catalog.
             query, catalog = read_input.cat_query(
-                clust_name, N_obs, ra_mid, dec_mid, dec_rang, box_s,
+                clust_name, N_obs, ra_mid, dec_mid, ra_rang, dec_rang, box_s,
                 cat_mode, catalog_n)
 
             # Match catalogs.

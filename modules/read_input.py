@@ -53,7 +53,7 @@ def in_data(clust_file, data_mode, data_cols, ra_hour):
 
 
 def cat_query(
-    clust_name, N_obs, ra_mid, dec_mid, dec_rang, box_s, cat_mode,
+    clust_name, N_obs, ra_mid, dec_mid, ra_rang, dec_rang, box_s, cat_mode,
         catalog):
     """
     Query selected catalog or read from file a previous stored version.
@@ -65,7 +65,7 @@ def cat_query(
             ra=ra_mid * u.degree, dec=dec_mid * u.degree, frame='icrs')
 
         if str(box_s) == 'auto':
-            width = dec_rang * u.deg
+            width = max(ra_rang, dec_rang) * u.deg
             logging.info("Using auto width={:.3f}".format(width))
         else:
             width = box_s * u.deg
