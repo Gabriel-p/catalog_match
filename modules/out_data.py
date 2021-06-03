@@ -82,8 +82,8 @@ def main(
     #         formats={'d_arcsec': '%.4f'})
     #     logging.info("Data for all matched stars written to file.")
 
-    # Write *not* matched stars to file.
-    ascii.write(
-        in_data_no_match, output=f_no_match, overwrite=True,  # format='csv',
-        formats={'d_arcsec': '%.4f'})
-    logging.info("Data for stars with no match written to file.")
+    # # Write *not* matched stars to file.
+    # ascii.write(
+    #     in_data_no_match, output=f_no_match, overwrite=True,  # format='csv',
+    #     formats={'d_arcsec': '%.4f'})
+    # logging.info("Data for stars with no match written to file.")
