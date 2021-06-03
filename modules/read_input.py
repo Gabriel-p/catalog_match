@@ -85,8 +85,8 @@ def cat_query(
         except IndexError:
             raise ValueError("Queried catalog came back empty")
 
-        # If the last row is empty (not sure why it happens), remove it
-        if 'END' in query[-1]:
+        # If the last row is empty (not sure why this happens), remove it
+        if 'END' in query[-1] or "EN" in query[-1]:
             print("Removing last empty row from queried data")
             query = query[:-1]
 
