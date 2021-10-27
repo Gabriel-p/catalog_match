@@ -92,7 +92,8 @@ ENV/
 !out.png
 *.dat
 *.csv
-!params_input_def.dat
+params_local.ini
+!params.ini
 *.txt
 !requirements.txt
 .condaauto

@@ -1,14 +1,68 @@
 
+import os.path
+from os import listdir
+from os.path import isfile, join
 import numpy as np
-from astroquery.vizier import Vizier
-# from astroquery.irsa import Irsa
-from astropy.coordinates import SkyCoord
+import configparser
 from astropy import units as u
 from astropy.io import ascii
 import logging
 
 
-def in_data(clust_file, data_mode, data_cols, ra_hour):
+def readIniFile():
+    """
+    Read .ini config file
+    """
+    in_params = configparser.ConfigParser()
+
+    # Local file takes precedence
+    if os.path.isfile('params_local.ini'):
+        in_params.read('params_local.ini')
+    else:
+        in_params.read('params.ini')
+
+    data_in = in_params['Data input']
+    mag, ra, dec = data_in.get('m_in'), data_in.get('ra'), data_in.get('dec')
+    data_cols = [mag, ra, dec]
+    ra_hour = data_in.getboolean('ra_hour')
+
+    q_mode = in_params['Query mode']
+    cat_mode, m_qry, ra_qry, dec_qry, box_s = q_mode.get('mode'),\
+        q_mode.get('m_q'), q_mode.get('ra_q'), q_mode.get('dec_q'),\
+        q_mode.get('box_s')
+
+    m_filts = in_params['Match filters']
+    max_arcsec, max_mag_delta = m_filts.getfloat('max_arcsec'),\
+        m_filts.getfloat('max_mag_delta')
+
+    return data_cols, ra_hour, cat_mode, m_qry, ra_qry, dec_qry, box_s,\
+        max_arcsec, max_mag_delta
+
+
+def get_files():
+    """
+    Store the paths and names of all the input clusters stored in the
+    input folder.
+    """
+    cl_files = [join('input/', f) for f in listdir('input/') if
+                isfile(join('input/', f))]
+
+    # Remove readme file it is still there.
+    try:
+        cl_files.remove('input/README.md')
+    except ValueError:
+        pass
+    # Remove any '_query.dat' file.
+    rm_idx = []
+    for i, _ in enumerate(cl_files):
+        if _.endswith('_query.dat'):
+            rm_idx.append(i)
+    cl_files = np.delete(cl_files, rm_idx).tolist()
+
+    return cl_files
+
+
+def in_data(clust_file, data_cols, ra_hour):
     """
     Read the file that stores the photometric data for all stars.
     """
@@ -20,15 +74,9 @@ def in_data(clust_file, data_mode, data_cols, ra_hour):
         fill_values=[('', '0'), ('NA', '0'), ('INDEF', '0')])
     # except ascii.core.InconsistentTableError:
 
-    if data_mode == 'num':
-        m_idx, ra_idx, dec_idx = map(int, data_cols)
-        m_obs, ra_obs, dec_obs = inp_data.columns[m_idx],\
-            inp_data.columns[ra_idx], inp_data.columns[dec_idx]
-        m_obs_nam = None
-    elif data_mode == 'nam':
-        m_obs_nam, ra_nam, dec_nam = data_cols
-        m_obs, ra_obs, dec_obs = inp_data[m_obs_nam], inp_data[ra_nam],\
-            inp_data[dec_nam]
+    m_obs_nam, ra_nam, dec_nam = data_cols
+    m_obs, ra_obs, dec_obs = inp_data[m_obs_nam], inp_data[ra_nam],\
+        inp_data[dec_nam]
 
     # Convert RA coordinates from hours to degrees
     if ra_hour is True:
@@ -51,67 +99,3 @@ def in_data(clust_file, data_mode, data_cols, ra_hour):
 
     return inp_data, m_obs, ra_obs, dec_obs, N_obs, ra_mid, dec_mid, ra_rang,\
         dec_rang, m_obs_nam
-
-
-def cat_query(
-    clust_name, N_obs, ra_mid, dec_mid, ra_rang, dec_rang, box_s, cat_mode,
-        catalog):
-    """
-    Query selected catalog or read from file a previous stored version.
-    """
-    if cat_mode == 'query':
-        logging.info("\nFetching data from {} catalog.".format(catalog))
-        txt = 'queried'
-        cent = SkyCoord(
-            ra=ra_mid * u.degree, dec=dec_mid * u.degree, frame='icrs')
-
-        if str(box_s) == 'auto':
-            width = max(ra_rang, dec_rang)
-            width = width + width * .05
-            width = width * u.deg
-            logging.info("Using auto width={:.3f}".format(width))
-        else:
-            width = box_s * u.deg
-            logging.info("Using manual width={:.3f}".format(width))
-
-        # Vizier query
-        # Unlimited rows, all columns
-        v = Vizier(row_limit=-1, columns=['all'])
-        query = v.query_region(SkyCoord(
-            cent, frame='icrs'), width=width, catalog=[catalog])
-
-        try:
-            query = query[0]
-        except IndexError:
-            raise ValueError("Queried catalog came back empty")
-
-        # If the last row is empty (not sure why this happens), remove it
-        if 'END' in query[-1] or "EN" in query[-1]:
-            print("Removing last empty row from queried data")
-            query = query[:-1]
-
-        # # Irsa query
-        # # Set maximum limit for retrieved stars.
-        # Irsa.ROW_LIMIT = int(4 * N_obs)
-        # query = Irsa.query_region(
-        #     cent, catalog=catalog, spatial='Box', width=ra_rang * u.deg)
-
-        out_file = clust_name + '_query.dat'
-        logging.info("Writing queried data to '{}' file.".format(out_file))
-        # TODO waiting for fix to
-        # https://github.com/astropy/astropy/issues/7744
-        ascii.write(
-            query, 'output/' + out_file, overwrite=True)  # format='csv',
-
-        catalog = "Queried catalog {}".format(catalog)
-
-    elif cat_mode == 'read':
-        logging.info("\nReading input catalog")
-        txt = 'read'
-        q_file = 'input/' + clust_name + '_query.dat'
-        query = ascii.read(q_file)
-        catalog = "Read catalog {}".format(catalog)
-
-    logging.info("N ({} catalog): {}".format(txt, len(query)))
-
-    return query, catalog
